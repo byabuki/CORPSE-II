@@ -1,8 +1,13 @@
 {
 	"base_projection": "thebatx",
 	"categories": {
-        "Name": {
-            "noFormula": true
+        "playerid": {
+            "noFormula": true,
+            "destinationColumn": "player_id"
+        },
+        "PlayerName": {
+            "noFormula": true,
+            "destinationColumn": "name"
         },
         "PA": {
             "noFormula": true,
@@ -22,7 +27,8 @@
         },
         "TB": {
             "isPositiveStat": true,
-            "isRateStat": false
+            "isRateStat": false,
+            "formula": "SLG * AB"
         },
         "OBP": {
             "isPositiveStat": true,
