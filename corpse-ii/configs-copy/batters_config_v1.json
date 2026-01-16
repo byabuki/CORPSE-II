@@ -1,0 +1,42 @@
+{
+	"base_projection": "thebatx",
+	"categories": {
+        "Name": {
+            "noFormula": true
+        },
+        "PA": {
+            "noFormula": true,
+            "isRateStat": false
+        },
+        "AB": {
+            "noFormula": true,
+            "isRateStat": false
+        },
+        "HR": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        },
+        "BB": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        },
+        "TB": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        },
+        "OBP": {
+            "isPositiveStat": true,
+            "isRateStat": true,
+            "denominator": "PA"
+        },
+        "SLG": {
+            "isPositiveStat": true,
+            "isRateStat": true,
+            "denominator": "AB"
+        },
+        "SB": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        }
+    }
+}

@@ -1,0 +1,47 @@
+{
+	"base_projection": "steamer",
+	"categories": {
+        "Name": {
+            "noFormula": true
+        },
+        "GS": {
+            "noFormula": true,
+            "isRateStat": false
+        },
+        "G": {
+            "noFormula": true,
+            "isRateStat": false
+        },
+        "IP": {
+            "noFormula": true,
+            "isRateStat": false
+        },
+        "ERA": {
+            "isPositiveStat": false,
+            "isRateStat": true,
+            "denominator": "IP"
+        },
+        "WHIP": {
+            "isPositiveStat": false,
+            "isRateStat": true,
+            "denominator": "IP"
+        },
+        "SO": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        },
+        "BB/9": {
+            "isPositiveStat": false,
+            "isRateStat": true,
+            "denominator": "IP"
+        },
+        "QS": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        },
+        "SVH": {
+            "isPositiveStat": true,
+            "isRateStat": false
+        }
+    }
+}
