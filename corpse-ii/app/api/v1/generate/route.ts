@@ -97,8 +97,33 @@ export async function POST(request: Request) {
       player.zTOTAL, true, new Date(), new Date()
     ]);
 
-    console.log('perform SQL INSERT');
-    const result = await sql`INSERT INTO batters_values_2026 (${sql(columns)}) VALUES ${sql(valuesArrays)}`;
+    console.log('perform SQL operations');
+    const result = await sql`
+      INSERT INTO batters_values_2026 (${sql(columns)})
+      VALUES ${sql(valuesArrays)}
+      ON CONFLICT (player_id) DO UPDATE SET
+        name = EXCLUDED.name,
+        pa = EXCLUDED.pa,
+        ab = EXCLUDED.ab,
+        hr = EXCLUDED.hr,
+        bb = EXCLUDED.bb,
+        tb = EXCLUDED.tb,
+        obp = EXCLUDED.obp,
+        slg = EXCLUDED.slg,
+        sb = EXCLUDED.sb,
+        zhr = EXCLUDED.zhr,
+        zbb = EXCLUDED.zbb,
+        ztb = EXCLUDED.ztb,
+        wobp = EXCLUDED.wobp,
+        zobp = EXCLUDED.zobp,
+        wslg = EXCLUDED.wslg,
+        zslg = EXCLUDED.zslg,
+        zsb = EXCLUDED.zsb,
+        ztotal = EXCLUDED.ztotal,
+        is_active = EXCLUDED.is_active,
+        last_stats_update = EXCLUDED.last_stats_update,
+        last_game_date = EXCLUDED.last_game_date
+    `;
 
     return NextResponse.json({
       success: true,
