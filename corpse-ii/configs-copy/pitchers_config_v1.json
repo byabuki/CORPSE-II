@@ -1,8 +1,13 @@
 {
 	"base_projection": "steamer",
 	"categories": {
-        "Name": {
-            "noFormula": true
+        "playerid": {
+            "noFormula": true,
+            "destinationColumn": "player_id"
+        },
+        "PlayerName": {
+            "noFormula": true,
+            "destinationColumn": "name"
         },
         "GS": {
             "noFormula": true,
