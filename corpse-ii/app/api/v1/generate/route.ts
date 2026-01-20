@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import postgres from 'postgres';
 import { compileExpression } from 'filtrex';
-import { calculateMean, calculateStdDev } from '../../lib/stats';
 import { generateZValues } from '@/app/lib/corpse';
 
 const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
