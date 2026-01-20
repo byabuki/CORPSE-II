@@ -11,3 +11,13 @@ type CategoriesConfig = {
   base_projection: string;
   categories: Record<string, CategoryConfig>;
 };
+
+interface Player {
+  name: string;
+  years: string;
+  tag: string;
+}
+
+interface TeamsAndKeepers {
+  [teamName: string]: string[];
+}

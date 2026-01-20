@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import postgres from 'postgres';
+import { google } from 'googleapis';
 
 import { Logger } from '@/app/lib/logger';
-
-const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
+import { parseKeeperData } from '@/app/lib/keepers';
 
 export async function POST(request: Request) {
     // Check authorization header
@@ -15,11 +14,29 @@ export async function POST(request: Request) {
     }
 
     try {
+        const serviceAccountKey = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+        const auth = new google.auth.GoogleAuth({
+            credentials: serviceAccountKey,
+            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        });
+        const sheets = google.sheets({ version: 'v4', auth });
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: '1mt605D6l-rTxLPBE1bQibi8MivKU9ic6luFnQxE7sXs',
+            range: 'A1:AD80',
+        });
+
+        const values = response.data.values;
+        if (!values || values.length === 0) {
+            throw new Error('No data found in spreadsheet.');
+        }
+
+
         return NextResponse.json(
             {
-                success: true
+                success: true,
+                values: parseKeeperData(values),
             },
-            { status: 201 }
+            { status: 200 }
         );
     } catch (e) {
         Logger.error(`Unable to complete team/player processing: ${JSON.stringify(e)}`);
