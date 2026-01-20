@@ -2,19 +2,19 @@
     "base_projection": "thebatx",
     "categories": {
         "playerid": {
-            "noFormula": true,
+            "noValuation": true,
             "destinationColumn": "player_id"
         },
         "PlayerName": {
-            "noFormula": true,
+            "noValuation": true,
             "destinationColumn": "name"
         },
         "PA": {
-            "noFormula": true,
+            "noValuation": true,
             "isRateStat": false
         },
         "AB": {
-            "noFormula": true,
+            "noValuation": true,
             "isRateStat": false
         },
         "HR": {

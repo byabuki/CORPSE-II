@@ -6,7 +6,7 @@ export function generateZValues(categoriesConfig, playerRows) {
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
         const category = categoriesConfig.categories[categoryKey];
 
-        if (category.noFormula) return;
+        if (category.noValuation) return;
 
         const values = playerRows.map(
             (player: Record<string, unknown>) => player[categoryKey] as number
@@ -27,7 +27,7 @@ export function generateZValues(categoriesConfig, playerRows) {
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
         const category = categoriesConfig.categories[categoryKey];
 
-        if (category.noFormula) return;
+        if (category.noValuation) return;
 
         if (!category.isRateStat) return;
 
@@ -44,7 +44,7 @@ export function generateZValues(categoriesConfig, playerRows) {
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
         const category = categoriesConfig.categories[categoryKey];
 
-        if (category.noFormula) return;
+        if (category.noValuation) return;
 
         if (!category.isRateStat) return;
 
@@ -75,7 +75,7 @@ export function generateZValues(categoriesConfig, playerRows) {
         Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
             const category = categoriesConfig.categories[categoryKey];
 
-            if (category.noFormula) return;
+            if (category.noValuation) return;
 
             if (!category.isRateStat) {
                 zTotal += player[`z${categoryKey}`] as number;

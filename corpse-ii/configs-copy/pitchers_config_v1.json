@@ -2,23 +2,23 @@
     "base_projection": "steamer",
     "categories": {
         "playerid": {
-            "noFormula": true,
+            "noValuation": true,
             "destinationColumn": "player_id"
         },
         "PlayerName": {
-            "noFormula": true,
+            "noValuation": true,
             "destinationColumn": "name"
         },
         "GS": {
-            "noFormula": true,
+            "noValuation": true,
             "isRateStat": false
         },
         "G": {
-            "noFormula": true,
+            "noValuation": true,
             "isRateStat": false
         },
         "IP": {
-            "noFormula": true,
+            "noValuation": true,
             "isRateStat": false
         },
         "ERA": {
