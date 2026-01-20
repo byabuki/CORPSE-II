@@ -1,6 +1,6 @@
 import { calculateMean, calculateStdDev } from './stats';
 
-export function generateZValues(categoriesConfig, playerRows) {
+export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: Record<string, number | string>[]) {
     console.log('calculating zScores');
 
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
@@ -34,7 +34,7 @@ export function generateZValues(categoriesConfig, playerRows) {
         playerRows.forEach((player: Record<string, unknown>) => {
             const zScore = player[`z${categoryKey}`] as number;
 
-            const weighted = zScore * (player[category.denominator] as number);
+            const weighted = zScore * (player[category.denominator ?? 0] as number);
 
             player[`w${categoryKey}`] = weighted;
         });
