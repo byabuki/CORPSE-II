@@ -1,6 +1,6 @@
 {
-	"base_projection": "thebatx",
-	"categories": {
+    "base_projection": "thebatx",
+    "categories": {
         "playerid": {
             "noFormula": true,
             "destinationColumn": "player_id"

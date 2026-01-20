@@ -1,6 +1,6 @@
 {
-	"base_projection": "steamer",
-	"categories": {
+    "base_projection": "steamer",
+    "categories": {
         "playerid": {
             "noFormula": true,
             "destinationColumn": "player_id"
@@ -38,7 +38,8 @@
         "BB/9": {
             "isPositiveStat": false,
             "isRateStat": true,
-            "denominator": "IP"
+            "denominator": "IP",
+            "destinationColumn": "BB9"
         },
         "QS": {
             "isPositiveStat": true,
@@ -46,7 +47,8 @@
         },
         "SVH": {
             "isPositiveStat": true,
-            "isRateStat": false
+            "isRateStat": false,
+            "formula": "SV + HLD"
         }
     }
 }

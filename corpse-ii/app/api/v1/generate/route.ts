@@ -1,141 +1,195 @@
 import { NextResponse } from 'next/server';
 import postgres from 'postgres';
 import { compileExpression } from 'filtrex';
+import { calculateMean, calculateStdDev } from '../../lib/stats';
+import { generateZValues } from '@/app/lib/corpse';
 
 const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
 export async function POST(request: Request) {
-  // Check authorization header
-  const authHeader = request.headers.get('authorization');
-  const token = authHeader?.replace('Bearer ', '');
+    // Check authorization header
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
 
-  if (token !== process.env.API_SECRET_TOKEN) {
-    return NextResponse.json({ error: 'Unauthorized 🔒' }, { status: 401 });
-  }
+    if (token !== process.env.API_SECRET_TOKEN) {
+        return NextResponse.json({ error: 'Unauthorized 🔒' }, { status: 401 });
+    }
 
-  try {
-    console.log('fetching batters config');
-    const battersConfigRaw = await fetch('https://y3fmv3sypyoh9kpr.public.blob.vercel-storage.com/batters_config_v1.json');
-    const battersConfig = await battersConfigRaw.json();
+    try {
+        let battersSuccessfulRows = 0;
+        let pitchersSuccessfulRows = 0;
 
-    const base_projection = battersConfig.base_projection;
-    console.log(`using ${base_projection} for batter valuation basis`)
+        // batters eval
+        try {
+            console.log('fetching batters config');
+            const battersConfigRaw = await fetch('https://y3fmv3sypyoh9kpr.public.blob.vercel-storage.com/batters_config_v1.json');
+            const battersConfig = await battersConfigRaw.json();
 
-    // https://www.fangraphs.com/api/projections?type=thebatx&stats=bat&pos=all
+            const base_projection = battersConfig.base_projection;
+            console.log(`using ${base_projection} for batter valuation basis`)
 
-    console.log('fetching fangraphs data')
-    const fangraphsResponse = await fetch(`https://www.fangraphs.com/api/projections?type=${base_projection}&stats=bat&pos=all`);
-    const fangraphsData = await fangraphsResponse.json();
+            console.log('fetching batters fangraphs data')
+            const fangraphsResponse = await fetch(`https://www.fangraphs.com/api/projections?type=${base_projection}&stats=bat&pos=all`);
+            const fangraphsData = await fangraphsResponse.json();
 
-    const mappedFangraphsData = fangraphsData.map((player: Record<string, unknown>) => {
-      const filteredPlayer: Record<string, unknown> = {};
-      Object.keys(battersConfig.categories).forEach(key => {
-        const category = battersConfig.categories[key];
-        const destinationKey = category.destinationColumn || key;
-        if (player.hasOwnProperty(key)) {
-          filteredPlayer[destinationKey] = player[key];
-        } else if (category.formula) {
-          const expr = compileExpression(category.formula);
-          filteredPlayer[destinationKey] = expr(player);
+            const playerRows = fangraphsData.map((player: Record<string, unknown>) => {
+                const filteredPlayer: Record<string, unknown> = {};
+                Object.keys(battersConfig.categories).forEach(key => {
+                    const category = battersConfig.categories[key];
+                    const destinationKey = key; // category.destinationColumn || key;
+                    if (player.hasOwnProperty(key)) {
+                        filteredPlayer[destinationKey] = player[key];
+                    } else if (category.formula) {
+                        const expr = compileExpression(category.formula);
+                        filteredPlayer[destinationKey] = expr(player);
+                    }
+                });
+                return filteredPlayer;
+            });
+
+            console.log('calculating batters zScores');
+            generateZValues(battersConfig, playerRows);
+
+            console.log('prep data for batters insert');
+            const columns = ['player_id', 'name', 'pa', 'ab', 'hr', 'bb', 'tb', 'obp', 'slg', 'sb', 'zhr', 'zbb', 'ztb', 'zobp', 'wobp', 'zslg', 'wslg', 'zwobp', 'zwslg', 'zsb', 'ztotal', 'is_active'];
+            const valuesArrays = playerRows.map((player: Record<string, unknown>) => [
+                player.playerid, player.PlayerName, player.PA, player.AB, player.HR, player.BB,
+                player.TB, player.OBP, player.SLG, player.SB, player.zHR, player.zBB,
+                player.zTB, player.zOBP, player.wOBP, player.zSLG, player.wSLG, player.zwOBP, player.zwSLG, player.zSB,
+                player.zTOTAL, true,
+            ]);
+
+            console.log('perform batters SQL operations');
+            for (let i = 0; i < valuesArrays.length; i += 500) {
+                const batch = valuesArrays.slice(i, i + 500);
+                const result = await sql`
+                    INSERT INTO batters_values_2026 (${sql(columns)})
+                    VALUES ${sql(batch)}
+                    ON CONFLICT (player_id) DO UPDATE SET
+                      name = EXCLUDED.name,
+                      pa = EXCLUDED.pa,
+                      ab = EXCLUDED.ab,
+                      hr = EXCLUDED.hr,
+                      bb = EXCLUDED.bb,
+                      tb = EXCLUDED.tb,
+                      obp = EXCLUDED.obp,
+                      slg = EXCLUDED.slg,
+                      sb = EXCLUDED.sb,
+                      zhr = EXCLUDED.zhr,
+                      zbb = EXCLUDED.zbb,
+                      ztb = EXCLUDED.ztb,
+                      zobp = EXCLUDED.zobp,
+                      wobp = EXCLUDED.wobp,
+                      zslg = EXCLUDED.zslg,
+                      wslg = EXCLUDED.wslg,
+                      zwobp = EXCLUDED.zwobp,
+                      zwslg = EXCLUDED.zwslg,
+                      zsb = EXCLUDED.zsb,
+                      ztotal = EXCLUDED.ztotal,
+                      is_active = EXCLUDED.is_active
+                `;
+                battersSuccessfulRows += batch.length;
+            }
+        } catch (e) {
+            console.error('Unable to complete batter valuations', e)
         }
-      });
-      return filteredPlayer;
-    });
 
-    console.log('calculating zScores');
+        // pitchers eval
+        try {
+            console.log('fetching pitchers config');
+            const pitchersConfigRaw = await fetch(
+                'https://y3fmv3sypyoh9kpr.public.blob.vercel-storage.com/pitchers_config_v1.json'
+            );
+            const pitchersConfig = await pitchersConfigRaw.json();
 
-    const calculateMean = (values: number[]): number => values.reduce((a, b) => a + b, 0) / values.length;
-    const calculateStdDev = (values: number[], mean: number): number => {
-      const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
-      return Math.sqrt(variance);
-    };
+            const base_projection = pitchersConfig.base_projection;
+            console.log(`using ${base_projection} for pitcher valuation basis`);
 
-    Object.keys(battersConfig.categories).forEach(categoryKey => {
-      const category = battersConfig.categories[categoryKey];
-      if (category.noFormula) return;
+            console.log('fetching pitchers fangraphs data');
+            const fangraphsResponse = await fetch(
+                `https://www.fangraphs.com/api/projections?type=${base_projection}&stats=pit&pos=all`
+            );
+            const fangraphsData = await fangraphsResponse.json();
 
-      const values = mappedFangraphsData.map((p: Record<string, unknown>) => p[categoryKey] as number);
-      const mean = calculateMean(values);
-      const std = calculateStdDev(values, mean);
+            console.log('remove unnecessary stats');
+            const playerRows = fangraphsData.map(
+                (player: Record<string, unknown>) => {
+                    const filteredPlayer: Record<string, unknown> = {};
+                    Object.keys(pitchersConfig.categories).forEach((key) => {
+                        const category = pitchersConfig.categories[key];
+                        const destinationKey = key; // category.destinationColumn || key;
+                        if (player.hasOwnProperty(key)) {
+                            filteredPlayer[destinationKey] = player[key];
+                        } else if (category.formula) {
+                            const expr = compileExpression(category.formula);
+                            filteredPlayer[destinationKey] = expr(player);
+                        }
+                    });
+                    return filteredPlayer;
+                }
+            );
 
-      if (!category.isRateStat) {
-        mappedFangraphsData.forEach((p: Record<string, unknown>) => {
-          let zScore = (p[categoryKey] as number - mean) / std;
-          if (!category.isPositiveStat) zScore *= -1;
-          p[`z${categoryKey}`] = zScore;
-        });
-      } else {
-        const weightedValues: number[] = [];
-        mappedFangraphsData.forEach((p: Record<string, unknown>) => {
-          const weighted = (p[categoryKey] as number) * (p[category.denominator] as number);
-          weightedValues.push(weighted);
-          p[`w${categoryKey}`] = weighted;
-        });
-        const weightedMean = calculateMean(weightedValues);
-        const weightedStd = calculateStdDev(weightedValues, weightedMean);
-        mappedFangraphsData.forEach((p: Record<string, unknown>, index: number) => {
-          let zScore = (weightedValues[index] - weightedMean) / weightedStd;
-          if (!category.isPositiveStat) zScore *= -1;
-          p[`z${categoryKey}`] = zScore;
-        });
-      }
-    });
+            generateZValues(pitchersConfig, playerRows);
 
 
-    console.log('updating zTOTALs');
-    mappedFangraphsData.forEach((p: Record<string, unknown>) => {
-      const zScores = Object.keys(p).filter(key => key.startsWith('z') && key !== 'zTOTAL').map(key => p[key] as number);
-      p.zTOTAL = zScores.reduce((sum, score) => sum + score, 0);
-    });
+            console.log('prep data for pitchers insert');
+            const columns = ['player_id', 'name', 'gs', 'g', 'ip', 'era', 'whip', 'so', 'bb9', 'qs', 'svh', 'zera', 'zwhip', 'zso', 'zbb9', 'zqs', 'zsvh', 'zwera', 'zwwhip', 'zwbb9', 'ztotal', 'is_active', 'created_at', 'updated_at'];
+            const valuesArrays = playerRows.map((player: Record<string, unknown>) => [
+                player.playerid, player.PlayerName, player.GS, player.G, player.IP, player.ERA, player.WHIP, player.SO, player['BB/9'], player.QS, player.SVH, player.zERA, player.zWHIP, player.zSO, player['zBB/9'], player.zQS, player.zSVH, player.zwERA, player.zwWHIP, player['zwBB/9'], player.zTOTAL, true, new Date(), new Date()
+            ]);
 
-    console.log('prep data for insert');
-    const columns = ['player_id', 'name', 'pa', 'ab', 'hr', 'bb', 'tb', 'obp', 'slg', 'sb', 'zhr', 'zbb', 'ztb', 'wobp', 'zobp', 'wslg', 'zslg', 'zsb', 'ztotal', 'is_active', 'last_stats_update', 'last_game_date'];
-    const valuesArrays = mappedFangraphsData.map((player: Record<string, unknown>) => [
-      player.player_id, player.name, player.PA, player.AB, player.HR, player.BB,
-      player.TB, player.OBP, player.SLG, player.SB, player.zHR, player.zBB,
-      player.zTB, player.wOBP, player.zOBP, player.wSLG, player.zSLG, player.zSB,
-      player.zTOTAL, true, new Date(), new Date()
-    ]);
+            console.log('perform pitchers SQL operations');
+            for (let i = 0; i < valuesArrays.length; i += 500) {
+                const batch = valuesArrays.slice(i, i + 500);
+                const result = await sql`
+                    INSERT INTO pitchers_values_2026 (${sql(columns)})
+                    VALUES ${sql(batch)}
+                    ON CONFLICT (player_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        gs = EXCLUDED.gs,
+                        g = EXCLUDED.g,
+                        ip = EXCLUDED.ip,
+                        era = EXCLUDED.era,
+                        whip = EXCLUDED.whip,
+                        so = EXCLUDED.so,
+                        bb9 = EXCLUDED.bb9,
+                        qs = EXCLUDED.qs,
+                        svh = EXCLUDED.svh,
+                        zera = EXCLUDED.zera,
+                        zwhip = EXCLUDED.zwhip,
+                        zso = EXCLUDED.zso,
+                        zbb9 = EXCLUDED.zbb9,
+                        zqs = EXCLUDED.zqs,
+                        zsvh = EXCLUDED.zsvh,
+                        zwera = EXCLUDED.zwera,
+                        zwwhip = EXCLUDED.zwwhip,
+                        zwbb9 = EXCLUDED.zwbb9,
+                        ztotal = EXCLUDED.ztotal,
+                        is_active = EXCLUDED.is_active,
+                        updated_at = NOW()
+                `;
+                pitchersSuccessfulRows += batch.length;
+            }
+        } catch (e) {
+            console.error('Unable to complete pitcher valuations', e);
+        }
 
-    console.log('perform SQL operations');
-    const result = await sql`
-      INSERT INTO batters_values_2026 (${sql(columns)})
-      VALUES ${sql(valuesArrays)}
-      ON CONFLICT (player_id) DO UPDATE SET
-        name = EXCLUDED.name,
-        pa = EXCLUDED.pa,
-        ab = EXCLUDED.ab,
-        hr = EXCLUDED.hr,
-        bb = EXCLUDED.bb,
-        tb = EXCLUDED.tb,
-        obp = EXCLUDED.obp,
-        slg = EXCLUDED.slg,
-        sb = EXCLUDED.sb,
-        zhr = EXCLUDED.zhr,
-        zbb = EXCLUDED.zbb,
-        ztb = EXCLUDED.ztb,
-        wobp = EXCLUDED.wobp,
-        zobp = EXCLUDED.zobp,
-        wslg = EXCLUDED.wslg,
-        zslg = EXCLUDED.zslg,
-        zsb = EXCLUDED.zsb,
-        ztotal = EXCLUDED.ztotal,
-        is_active = EXCLUDED.is_active,
-        last_stats_update = EXCLUDED.last_stats_update,
-        last_game_date = EXCLUDED.last_game_date
-    `;
-
-    return NextResponse.json({
-      success: true,
-      insertedRows: valuesArrays.length
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('Unable to complete player valuations: ', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to complete player valuations'
-    }, { status: 500 });
-  }
-
+        return NextResponse.json(
+            {
+                success: true,
+                battersInsertedRows: battersSuccessfulRows,
+                pitchersInsertedRows: pitchersSuccessfulRows,
+            },
+            { status: 201 }
+        );
+    } catch (error) {
+        console.error('Unable to complete player valuations: ', error);
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'Failed to complete player valuations',
+            },
+            { status: 500 }
+        );
+    }
 }
