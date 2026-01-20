@@ -1,7 +1,8 @@
 import { calculateMean, calculateStdDev } from './stats';
+import { Logger } from './logger';
 
 export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: Record<string, number | string>[]) {
-    console.log('calculating zScores');
+    Logger.info('calculating zScores');
 
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
         const category = categoriesConfig.categories[categoryKey];
@@ -23,7 +24,7 @@ export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: 
         });
     });
 
-    console.log('add weighted zScores for rate stats');
+    Logger.info('add weighted zScores for rate stats');
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
         const category = categoriesConfig.categories[categoryKey];
 
@@ -40,7 +41,7 @@ export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: 
         });
     });
 
-    console.log('calculate weighted zScores');
+    Logger.info('calculate weighted zScores');
     Object.keys(categoriesConfig.categories).forEach((categoryKey) => {
         const category = categoriesConfig.categories[categoryKey];
 
@@ -55,9 +56,8 @@ export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: 
         const weightedMean = calculateMean(weightedValues);
         const weightedStd = calculateStdDev(weightedValues, weightedMean);
 
-        console.log(
-            `category: ${categoryKey}`,
-            `weighted mean: ${weightedMean}, weightedStdev: ${weightedStd}`
+        Logger.info(
+            `category: ${categoryKey}, weighted mean: ${weightedMean}, weightedStdev: ${weightedStd}`
         );
 
         playerRows.forEach((player: Record<string, unknown>) => {
@@ -69,7 +69,7 @@ export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: 
         });
     });
 
-    console.log('updating zTOTALs');
+    Logger.info('updating zTOTALs');
     playerRows.forEach((player: Record<string, unknown>) => {
         let zTotal = 0;
         Object.keys(categoriesConfig.categories).forEach((categoryKey) => {

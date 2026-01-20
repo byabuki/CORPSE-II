@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import postgres from 'postgres';
 import { compileExpression } from 'filtrex';
 import { generateZValues } from '@/app/lib/corpse';
+import { Logger } from '@/app/lib/logger';
 
 const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
@@ -20,14 +21,14 @@ export async function POST(request: Request) {
 
         // batters eval
         try {
-            console.log('fetching batters config');
+            Logger.info('fetching batters config');
             const battersConfigRaw = await fetch('https://y3fmv3sypyoh9kpr.public.blob.vercel-storage.com/batters_config_v1.json');
             const battersConfig = await battersConfigRaw.json();
 
             const base_projection = battersConfig.base_projection;
-            console.log(`using ${base_projection} for batter valuation basis`)
+            Logger.info(`using ${base_projection} for batter valuation basis`)
 
-            console.log('fetching batters fangraphs data')
+            Logger.info('fetching batters fangraphs data')
             const fangraphsResponse = await fetch(`https://www.fangraphs.com/api/projections?type=${base_projection}&stats=bat&pos=all`);
             const fangraphsData = await fangraphsResponse.json();
 
@@ -46,10 +47,10 @@ export async function POST(request: Request) {
                 return filteredPlayer;
             });
 
-            console.log('calculating batters zScores');
+            Logger.info('calculating batters zScores');
             generateZValues(battersConfig, playerRows);
 
-            console.log('prep data for batters insert');
+            Logger.info('prep data for batters insert');
             const columns = ['player_id', 'name', 'pa', 'ab', 'hr', 'bb', 'tb', 'obp', 'slg', 'sb', 'zhr', 'zbb', 'ztb', 'zobp', 'wobp', 'zslg', 'wslg', 'zwobp', 'zwslg', 'zsb', 'ztotal', 'is_active'];
             const valuesArrays = playerRows.map((player: Record<string, unknown>) => [
                 player.playerid, player.PlayerName, player.PA, player.AB, player.HR, player.BB,
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
                 player.zTOTAL, true,
             ]);
 
-            console.log('perform batters SQL operations');
+            Logger.info('perform batters SQL operations');
             for (let i = 0; i < valuesArrays.length; i += 500) {
                 const batch = valuesArrays.slice(i, i + 500);
                 const result = await sql`
@@ -90,27 +91,27 @@ export async function POST(request: Request) {
                 battersSuccessfulRows += batch.length;
             }
         } catch (e) {
-            console.error('Unable to complete batter valuations', e)
+            Logger.error(`Unable to complete batter valuations: ${JSON.stringify(e)}`)
         }
 
         // pitchers eval
         try {
-            console.log('fetching pitchers config');
+            Logger.info('fetching pitchers config');
             const pitchersConfigRaw = await fetch(
                 'https://y3fmv3sypyoh9kpr.public.blob.vercel-storage.com/pitchers_config_v1.json'
             );
             const pitchersConfig = await pitchersConfigRaw.json();
 
             const base_projection = pitchersConfig.base_projection;
-            console.log(`using ${base_projection} for pitcher valuation basis`);
+            Logger.info(`using ${base_projection} for pitcher valuation basis`);
 
-            console.log('fetching pitchers fangraphs data');
+            Logger.info('fetching pitchers fangraphs data');
             const fangraphsResponse = await fetch(
                 `https://www.fangraphs.com/api/projections?type=${base_projection}&stats=pit&pos=all`
             );
             const fangraphsData = await fangraphsResponse.json();
 
-            console.log('remove unnecessary stats');
+            Logger.info('remove unnecessary stats');
             const playerRows = fangraphsData.map(
                 (player: Record<string, unknown>) => {
                     const filteredPlayer: Record<string, unknown> = {};
@@ -131,13 +132,13 @@ export async function POST(request: Request) {
             generateZValues(pitchersConfig, playerRows);
 
 
-            console.log('prep data for pitchers insert');
+            Logger.info('prep data for pitchers insert');
             const columns = ['player_id', 'name', 'gs', 'g', 'ip', 'era', 'whip', 'so', 'bb9', 'qs', 'svh', 'zera', 'zwhip', 'zso', 'zbb9', 'zqs', 'zsvh', 'zwera', 'zwwhip', 'zwbb9', 'ztotal', 'is_active', 'created_at', 'updated_at'];
             const valuesArrays = playerRows.map((player: Record<string, unknown>) => [
                 player.playerid, player.PlayerName, player.GS, player.G, player.IP, player.ERA, player.WHIP, player.SO, player['BB/9'], player.QS, player.SVH, player.zERA, player.zWHIP, player.zSO, player['zBB/9'], player.zQS, player.zSVH, player.zwERA, player.zwWHIP, player['zwBB/9'], player.zTOTAL, true, new Date(), new Date()
             ]);
 
-            console.log('perform pitchers SQL operations');
+            Logger.info('perform pitchers SQL operations');
             for (let i = 0; i < valuesArrays.length; i += 500) {
                 const batch = valuesArrays.slice(i, i + 500);
                 const result = await sql`
@@ -170,7 +171,7 @@ export async function POST(request: Request) {
                 pitchersSuccessfulRows += batch.length;
             }
         } catch (e) {
-            console.error('Unable to complete pitcher valuations', e);
+            Logger.error(`Unable to complete pitcher valuations: ${JSON.stringify(e)}`);
         }
 
         return NextResponse.json(
@@ -182,7 +183,7 @@ export async function POST(request: Request) {
             { status: 201 }
         );
     } catch (error) {
-        console.error('Unable to complete player valuations: ', error);
+        Logger.error(`Unable to complete player valuations: ${JSON.stringify(error)}`);
         return NextResponse.json(
             {
                 success: false,
