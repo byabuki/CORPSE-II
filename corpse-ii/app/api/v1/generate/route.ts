@@ -5,8 +5,6 @@ import { generateZValues } from '@/app/lib/corpse';
 import { Logger } from '@/app/lib/logger';
 import { toAscii } from '@/app/lib/helpers';
 
-const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
-
 export async function POST(request: Request) {
     // Check authorization header
     const authHeader = request.headers.get('authorization');
@@ -17,6 +15,8 @@ export async function POST(request: Request) {
     }
 
     try {
+        const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
+
         let battersSuccessfulRows = 0;
         let pitchersSuccessfulRows = 0;
 

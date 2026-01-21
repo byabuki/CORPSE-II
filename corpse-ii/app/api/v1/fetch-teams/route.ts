@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import postgres from 'postgres';
 
 import { Logger } from '@/app/lib/logger';
 import { parseKeeperData } from '@/app/lib/keepers';
@@ -12,6 +13,8 @@ export async function POST(request: Request) {
     if (token !== process.env.API_SECRET_TOKEN) {
         return NextResponse.json({ error: 'Unauthorized 🔒' }, { status: 401 });
     }
+
+    const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
     try {
         const serviceAccountKey = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
@@ -30,11 +33,36 @@ export async function POST(request: Request) {
             throw new Error('No data found in spreadsheet.');
         }
 
+        const teamsAndPlayers = parseKeeperData(values);
+
+        // Truncate the table
+        await sql`TRUNCATE TABLE team_composition_2026;`;
+
+        // Prepare data for insertion
+        const valuesArrays: string[][] = [];
+        for (const [team, players] of Object.entries(teamsAndPlayers)) {
+            for (const player of players) {
+                valuesArrays.push([team, player]);
+            }
+        }
+
+        // Insert in batches
+        const columns = ['team', 'player'];
+        let insertedRows = 0;
+        for (let i = 0; i < valuesArrays.length; i += 500) {
+            const batch = valuesArrays.slice(i, i + 500);
+            await sql`
+                INSERT INTO team_composition_2026 (${sql(columns)})
+                VALUES ${sql(batch)}
+            `;
+            insertedRows += batch.length;
+        }
 
         return NextResponse.json(
             {
                 success: true,
-                values: parseKeeperData(values),
+                values: teamsAndPlayers,
+                insertedRows
             },
             { status: 200 }
         );
