@@ -16,8 +16,17 @@ export async function POST(request: Request) {
 
     const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
+    Logger.info('Fetching teams and their players from source sheet');
+
     try {
-        const serviceAccountKey = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}');
+        const envValue = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+
+        if (!envValue) {
+            throw new Error('Google service account key not set');
+        }
+
+        const serviceAccountKey = JSON.parse(envValue);
+
         const auth = new google.auth.GoogleAuth({
             credentials: serviceAccountKey,
             scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
@@ -30,12 +39,15 @@ export async function POST(request: Request) {
 
         const values = response.data.values;
         if (!values || values.length === 0) {
-            throw new Error('No data found in spreadsheet.');
+            throw new Error('No data found in spreadsheet');
         }
+
+        Logger.info('Got sheet data, parsing data into teams and players');
 
         const teamsAndPlayers = parseKeeperData(values);
 
-        // Truncate the table
+        Logger.info('Delete previous results');
+
         await sql`TRUNCATE TABLE team_composition_2026;`;
 
         // Prepare data for insertion
@@ -46,17 +58,14 @@ export async function POST(request: Request) {
             }
         }
 
-        // Insert in batches
+        Logger.info('Insert latest teams and players');
+
         const columns = ['team', 'player'];
-        let insertedRows = 0;
-        for (let i = 0; i < valuesArrays.length; i += 500) {
-            const batch = valuesArrays.slice(i, i + 500);
-            await sql`
-                INSERT INTO team_composition_2026 (${sql(columns)})
-                VALUES ${sql(batch)}
-            `;
-            insertedRows += batch.length;
-        }
+        const insertedRows = valuesArrays.length;
+        await sql`
+            INSERT INTO team_composition_2026 (${sql(columns)})
+            VALUES ${sql(valuesArrays)}
+        `;
 
         return NextResponse.json(
             {
