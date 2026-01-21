@@ -3,6 +3,7 @@ import postgres from 'postgres';
 import { compileExpression } from 'filtrex';
 import { generateZValues } from '@/app/lib/corpse';
 import { Logger } from '@/app/lib/logger';
+import { toAscii } from '@/app/lib/helpers';
 
 const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
@@ -51,9 +52,9 @@ export async function POST(request: Request) {
             generateZValues(battersConfig, playerRows);
 
             Logger.info('prep data for batters insert');
-            const columns = ['player_id', 'name', 'pa', 'ab', 'hr', 'bb', 'tb', 'obp', 'slg', 'sb', 'zhr', 'zbb', 'ztb', 'zobp', 'wobp', 'zslg', 'wslg', 'zwobp', 'zwslg', 'zsb', 'ztotal', 'is_active'];
+            const columns = ['player_id', 'name', 'nameascii', 'pa', 'ab', 'hr', 'bb', 'tb', 'obp', 'slg', 'sb', 'zhr', 'zbb', 'ztb', 'zobp', 'wobp', 'zslg', 'wslg', 'zwobp', 'zwslg', 'zsb', 'ztotal', 'is_active'];
             const valuesArrays = playerRows.map((player: Record<string, unknown>) => [
-                player.playerid, player.PlayerName, player.PA, player.AB, player.HR, player.BB,
+                player.playerid, player.PlayerName, toAscii(player.PlayerName as string), player.PA, player.AB, player.HR, player.BB,
                 player.TB, player.OBP, player.SLG, player.SB, player.zHR, player.zBB,
                 player.zTB, player.zOBP, player.wOBP, player.zSLG, player.wSLG, player.zwOBP, player.zwSLG, player.zSB,
                 player.zTOTAL, true,
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
                     VALUES ${sql(batch)}
                     ON CONFLICT (player_id) DO UPDATE SET
                       name = EXCLUDED.name,
+                      nameascii = EXCLUDED.nameascii,
                       pa = EXCLUDED.pa,
                       ab = EXCLUDED.ab,
                       hr = EXCLUDED.hr,
@@ -133,9 +135,9 @@ export async function POST(request: Request) {
 
 
             Logger.info('prep data for pitchers insert');
-            const columns = ['player_id', 'name', 'gs', 'g', 'ip', 'era', 'whip', 'so', 'bb9', 'qs', 'svh', 'zera', 'zwhip', 'zso', 'zbb9', 'zqs', 'zsvh', 'zwera', 'zwwhip', 'zwbb9', 'ztotal', 'is_active', 'created_at', 'updated_at'];
+            const columns = ['player_id', 'name', 'nameascii', 'gs', 'g', 'ip', 'era', 'whip', 'so', 'bb9', 'qs', 'svh', 'zera', 'zwhip', 'zso', 'zbb9', 'zqs', 'zsvh', 'zwera', 'zwwhip', 'zwbb9', 'ztotal', 'is_active', 'created_at', 'updated_at'];
             const valuesArrays = playerRows.map((player: Record<string, unknown>) => [
-                player.playerid, player.PlayerName, player.GS, player.G, player.IP, player.ERA, player.WHIP, player.SO, player['BB/9'], player.QS, player.SVH, player.zERA, player.zWHIP, player.zSO, player['zBB/9'], player.zQS, player.zSVH, player.zwERA, player.zwWHIP, player['zwBB/9'], player.zTOTAL, true, new Date(), new Date()
+                player.playerid, player.PlayerName, toAscii(player.PlayerName as string), player.GS, player.G, player.IP, player.ERA, player.WHIP, player.SO, player['BB/9'], player.QS, player.SVH, player.zERA, player.zWHIP, player.zSO, player['zBB/9'], player.zQS, player.zSVH, player.zwERA, player.zwWHIP, player['zwBB/9'], player.zTOTAL, true, new Date(), new Date()
             ]);
 
             Logger.info('perform pitchers SQL operations');
@@ -146,6 +148,7 @@ export async function POST(request: Request) {
                     VALUES ${sql(batch)}
                     ON CONFLICT (player_id) DO UPDATE SET
                         name = EXCLUDED.name,
+                        nameascii = EXCLUDED.nameascii,
                         gs = EXCLUDED.gs,
                         g = EXCLUDED.g,
                         ip = EXCLUDED.ip,

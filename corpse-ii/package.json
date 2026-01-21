@@ -9,7 +9,8 @@
         "lint": "eslint .",
         "lint:fix": "eslint --fix .",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "test": "jest"
     },
     "dependencies": {
         "@vercel/blob": "^0.0.2",
@@ -22,13 +23,16 @@
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4",
+        "@types/jest": "^30.0.0",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "eslint": "^9",
         "eslint-config-next": "16.1.2",
+        "jest": "^30.2.0",
         "prettier": "^3.8.0",
         "tailwindcss": "^4",
+        "ts-jest": "^29.4.6",
         "typescript": "^5"
     }
 }
