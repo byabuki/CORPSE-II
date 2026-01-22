@@ -5,6 +5,9 @@ interface PlayerRecord {
     ztotal: number;
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function Home() {
     const batterValues = (await getBatterValuesFromDB()) as unknown as PlayerRecord[];
     const pitcherValues = (await getPitcherValuesFromDB()) as unknown as PlayerRecord[];
@@ -72,6 +75,8 @@ export default async function Home() {
         saturation = Math.min(saturation, 100);
         return `hsl(${hue}, ${saturation}%, 50%)`;
     };
+
+
 
     return (
         <div className="min-h-full p-8">
