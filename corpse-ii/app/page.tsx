@@ -78,22 +78,22 @@ export default async function Home() {
                     </thead>
                     <tbody>
                         {Array.from(new Set([...Object.keys(batterTeamSums), ...Object.keys(pitcherTeamSums)])).sort().map(team => {
-                            const batterValue = batterTeamSums[team] || 0;
-                            const pitcherValue = pitcherTeamSums[team] || 0;
+                            const battersValue = batterTeamSums[team] || 0;
+                            const pitchersValue = pitcherTeamSums[team] || 0;
                             return (
                                 <tr key={team} className="hover:bg-gray-50">
                                     <td className="border border-gray-300 px-4 py-2">{team}</td>
                                     <td
                                         className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: batterValue > 0 ? (getColor(batterValue, batterValuesList) || 'transparent') : 'transparent' }}
+                                        style={{ backgroundColor: battersValue > 0 ? (getColor(battersValue, batterValuesList) || 'transparent') : 'transparent' }}
                                     >
-                                        {batterValue.toFixed(3)}
+                                        {battersValue.toFixed(3)}
                                     </td>
                                     <td
                                         className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: pitcherValue > 0 ? (getColor(pitcherValue, pitcherValuesList) || 'transparent') : 'transparent' }}
+                                        style={{ backgroundColor: pitchersValue > 0 ? (getColor(pitchersValue, pitcherValuesList) || 'transparent') : 'transparent' }}
                                     >
-                                        {pitcherValue.toFixed(3)}
+                                        {pitchersValue.toFixed(3)}
                                     </td>
                                 </tr>
                             );
