@@ -1,0 +1,29 @@
+name: Get latest teams and players
+
+on:
+  schedule:
+    # Runs at 30 min past the hour every hour
+    - cron: '30 * * * *'
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  send-request:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Random delay
+        run: sleep $((RANDOM % 300))
+
+      - name: POST to CORPSE fetch-teams API route
+        env:
+          BEARER_TOKEN: ${{ secrets.CORPSE_API_TOKEN }}
+        run: |
+          curl --request POST \
+            --url https://corpse-ii.vercel.app/api/v1/fetch-teams \
+            --header 'Authorization: Bearer bf2dfb2067909a337c4985a52153538419d6530e0e57a2615e6e8c28deb6723d'
+
+      - name: Check response
+        if: failure()
+        run: echo "Request failed"
+
+name: Get latest fangraphs projections
