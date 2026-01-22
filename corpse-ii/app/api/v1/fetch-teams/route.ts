@@ -4,6 +4,17 @@ import postgres from 'postgres';
 
 import { Logger } from '@/app/lib/logger';
 import { parseKeeperData } from '@/app/lib/keepers';
+import { getTeamsFromDB } from '@/app/lib/helpers';
+
+export async function GET() {
+    try {
+        const teams = await getTeamsFromDB();
+        return NextResponse.json(teams);
+    } catch (error) {
+        Logger.error(`Failed to fetch teams: ${error}`);
+        return NextResponse.json({ error: 'Failed to fetch teams' }, { status: 500 });
+    }
+}
 
 export async function POST(request: Request) {
     // Check authorization header

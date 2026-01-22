@@ -1,13 +1,63 @@
-import Link from 'next/link';
-import { getTeamsFromDB } from '@/app/lib/helpers';
+'use client';
 
-export default async function Sidebar() {
-    const teams = await getTeamsFromDB();
-    const teamNames = Object.keys(teams).sort();
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+export default function Sidebar() {
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [teams, setTeams] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Fetch teams on client side
+        const fetchTeams = async () => {
+            try {
+                const response = await fetch('/api/v1/fetch-teams');
+                const data = await response.json();
+                const teamNames = Object.keys(data).sort();
+                setTeams(teamNames);
+            } catch (error) {
+                console.error('Failed to fetch teams:', error);
+            }
+        };
+
+        fetchTeams();
+
+        // Check initial window size
+        const checkWidth = () => {
+            setIsCollapsed(window.innerWidth < 1024);
+        };
+
+        checkWidth();
+
+        // Add resize listener
+        window.addEventListener('resize', checkWidth);
+
+        return () => window.removeEventListener('resize', checkWidth);
+    }, []);
 
     return (
-        <aside className="w-64 bg-amber-50 border-r border-amber-200">
-            <nav className="p-6">
+        <aside className={`bg-amber-50 border-r border-amber-200 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+            <div className="p-4">
+                {isCollapsed && (
+                    <button
+                        onClick={() => setIsCollapsed(false)}
+                        className="w-full mb-4 p-2 bg-amber-100 hover:bg-amber-200 rounded text-black"
+                        aria-label="Expand sidebar"
+                    >
+                        ☰
+                    </button>
+                )}
+                {!isCollapsed && (
+                    <button
+                        onClick={() => setIsCollapsed(true)}
+                        className="w-full mb-4 p-2 bg-amber-100 hover:bg-amber-200 rounded text-black"
+                        aria-label="Collapse sidebar"
+                    >
+                        ☰
+                    </button>
+                )}
+            </div>
+            <nav className={`${isCollapsed ? 'hidden' : 'p-6'}`}>
                 <ul className="space-y-4">
                     <li>
                         <Link
@@ -17,7 +67,7 @@ export default async function Sidebar() {
                             Home
                         </Link>
                     </li>
-                    {teamNames.map((teamName) => (
+                    {teams.map((teamName) => (
                         <li key={teamName}>
                             <Link
                                 href={`/teams/${encodeURIComponent(teamName)}`}
