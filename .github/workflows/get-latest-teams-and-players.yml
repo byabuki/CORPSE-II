@@ -25,5 +25,3 @@ jobs:
       - name: Check response
         if: failure()
         run: echo "Request failed"
-
-name: Get latest fangraphs projections
