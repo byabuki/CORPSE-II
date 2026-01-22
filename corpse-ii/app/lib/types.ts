@@ -1,4 +1,4 @@
-interface CategoryConfig {
+export interface CategoryConfig {
   noValuation?: boolean;
   destinationColumn?: string;
   isPositiveStat?: boolean;
@@ -7,17 +7,19 @@ interface CategoryConfig {
   denominator?: string;
 }
 
-type CategoriesConfig = {
+export type CategoriesConfig = {
   base_projection: string;
   categories: Record<string, CategoryConfig>;
 };
 
-interface Player {
+export interface Player {
   name: string;
   years: string;
   tag: string;
 }
 
-interface TeamsAndKeepers {
+export interface TeamsAndKeepers {
   [teamName: string]: string[];
 }
+
+export type PlayerValues = Record<string, unknown>[];

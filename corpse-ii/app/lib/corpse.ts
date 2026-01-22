@@ -1,5 +1,6 @@
 import { calculateMean, calculateStdDev } from './stats';
 import { Logger } from './logger';
+import { CategoriesConfig } from './types';
 
 export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: Record<string, number | string>[]) {
     Logger.info('calculating zScores');

@@ -1,3 +1,5 @@
+import { TeamsAndKeepers } from './types';
+
 export function parseKeeperData(values: string[][]): TeamsAndKeepers {
     const result: TeamsAndKeepers = {};
 
