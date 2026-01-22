@@ -41,16 +41,18 @@ export default async function Home() {
 
     const batterTeamSums = batterValues.reduce((acc, batter) => {
         const team = batter.team;
-        const ztotal = batter.ztotal;
-        if (!acc[team]) acc[team] = 0;
+        const ztotal = batter.ztotal > 0 ? batter.ztotal : 0;
+        if (!acc[team])
+            acc[team] = 0;
         acc[team] += ztotal;
         return acc;
     }, {} as Record<string, number>);
 
     const pitcherTeamSums = pitcherValues.reduce((acc, pitcher) => {
         const team = pitcher.team;
-        const ztotal = pitcher.ztotal;
-        if (!acc[team]) acc[team] = 0;
+        const ztotal = pitcher.ztotal > 0 ? pitcher.ztotal : 0;
+        if (!acc[team])
+            acc[team] = 0;
         acc[team] += ztotal;
         return acc;
     }, {} as Record<string, number>);
