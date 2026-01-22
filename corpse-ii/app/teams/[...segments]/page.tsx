@@ -38,9 +38,9 @@ export default async function TeamPage({ params }: PageProps) {
     const teamName = decodeURIComponent(segments.join('/'));
     const teamPlayers = teams[teamName];
 
+    const teamBatters = batterValues.filter(batter => teamPlayers.includes(batter.nameascii as string)) as unknown as BatterRecord[];
+    const teamPitchers = pitcherValues.filter(pitcher => teamPlayers.includes(pitcher.nameascii as string)) as unknown as PitcherRecord[];
 
-    const teamBatters = batterValues.filter(batter => teamPlayers.includes(batter.name as string)) as unknown as BatterRecord[];
-    const teamPitchers = pitcherValues.filter(pitcher => teamPlayers.includes(pitcher.name as string)) as unknown as PitcherRecord[];
 
     if (!teamPlayers) {
         return (
