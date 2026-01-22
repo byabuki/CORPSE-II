@@ -10,12 +10,6 @@ export default function BottomBar() {
                 >
                     Home
                 </Link>
-                <Link
-                    href="/teams"
-                    className="text-white hover:text-white transition-colors"
-                >
-                    Teams
-                </Link>
             </nav>
         </footer>
     );

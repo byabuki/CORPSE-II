@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+const COLLAPSE_VALUE = 1024;
+
 export default function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [teams, setTeams] = useState<string[]>([]);
@@ -24,7 +26,7 @@ export default function Sidebar() {
 
         // Check initial window size
         const checkWidth = () => {
-            setIsCollapsed(window.innerWidth < 1024);
+            setIsCollapsed(window.innerWidth < COLLAPSE_VALUE);
         };
 
         checkWidth();
