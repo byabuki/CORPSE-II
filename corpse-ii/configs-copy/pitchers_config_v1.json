@@ -1,5 +1,5 @@
 {
-    "base_projection": "steamer",
+    "base_projection": "atc",
     "categories": {
         "playerid": {
             "noValuation": true,
