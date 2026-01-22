@@ -72,7 +72,7 @@ export default async function TeamPage({ params }: PageProps) {
                         <h2 className="text-2xl font-semibold mb-4">Batters</h2>
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
-                                <tr className="bg-gray-100">
+                                <tr className="bg-gray-100 dark:bg-gray-800">
                                     <th className="border border-gray-300 px-4 py-2">Player Name</th>
                                     <th className="border border-gray-300 px-4 py-2">PA</th>
                                     <th className="border border-gray-300 px-4 py-2">HR</th>
@@ -109,7 +109,7 @@ export default async function TeamPage({ params }: PageProps) {
                         <h2 className="text-2xl font-semibold mb-4">Pitchers</h2>
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
-                                <tr className="bg-gray-100">
+                                <tr className="bg-gray-100 dark:bg-gray-800">
                                     <th className="border border-gray-300 px-4 py-2">Player Name</th>
                                     <th className="border border-gray-300 px-4 py-2">IP</th>
                                     <th className="border border-gray-300 px-4 py-2">K</th>

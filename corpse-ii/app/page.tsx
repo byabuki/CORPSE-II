@@ -80,7 +80,7 @@ export default async function Home() {
 
                 <table className="w-full table-auto border-collapse border border-gray-300">
                     <thead>
-                        <tr className="bg-gray-100">
+                        <tr className="bg-gray-100 dark:bg-gray-800">
                             <th className="border border-gray-300 px-4 py-2">Team</th>
                             <th className="border border-gray-300 px-4 py-2">Batters zTotal</th>
                             <th className="border border-gray-300 px-4 py-2">Pitchers zTotal</th>
