@@ -5,8 +5,35 @@ interface PlayerRecord {
     ztotal: number;
 }
 
+// Forces the page to be rendered dynamically on every request
+// Opts out of static optimization (no pre-rendering, or build time caching)
 export const dynamic = 'force-dynamic';
+
+// Sets revalidation time to 0 seconds - tells Next.js not to cache at all,
+// also prevents ISR from caching/instructs Vercel CDN not to cache
 export const revalidate = 0;
+
+function getPercentile(value: number, values: number[]) {
+    if (values.length === 0) return 0;
+    const index = values.findIndex(val => val >= value);
+    return index / (values.length - 1);
+};
+
+function getColor(value: number, values: number[]): string | null {
+    const percentile = getPercentile(value, values);
+    if (percentile === 0.5) return null; // no color at 50th percentile
+    let hue: number;
+    let saturation: number;
+    if (percentile < 0.5) {
+        hue = 0;
+        saturation = (0.5 - percentile) * 140;
+    } else {
+        hue = 120;
+        saturation = (percentile - 0.5) * 140;
+    }
+    saturation = Math.min(saturation, 100);
+    return `hsl(${hue}, ${saturation}%, 50%)`;
+};
 
 export default async function Home() {
     const batterValues = (await getBatterValuesFromDB()) as unknown as PlayerRecord[];
@@ -30,53 +57,9 @@ export default async function Home() {
 
     // Calculate percentiles for batters zTotal color coding
     const batterValuesList = Object.values(batterTeamSums).filter(val => val > 0).sort((a, b) => a - b);
-    const getBatterPercentile = (value: number): number => {
-        if (batterValuesList.length === 0) return 0;
-        const index = batterValuesList.findIndex(val => val >= value);
-        return index / (batterValuesList.length - 1);
-    };
-
-    const getBatterColor = (value: number): string | null => {
-        const percentile = getBatterPercentile(value);
-        if (percentile === 0.5) return null; // no color at 50th percentile
-        let hue: number;
-        let saturation: number;
-        if (percentile < 0.5) {
-            hue = 0;
-            saturation = (0.5 - percentile) * 140;
-        } else {
-            hue = 120;
-            saturation = (percentile - 0.5) * 140;
-        }
-        saturation = Math.min(saturation, 100);
-        return `hsl(${hue}, ${saturation}%, 50%)`;
-    };
 
     // Calculate percentiles for pitchers zTotal color coding
     const pitcherValuesList = Object.values(pitcherTeamSums).filter(val => val > 0).sort((a, b) => a - b);
-    const getPitcherPercentile = (value: number): number => {
-        if (pitcherValuesList.length === 0) return 0;
-        const index = pitcherValuesList.findIndex(val => val >= value);
-        return index / (pitcherValuesList.length - 1);
-    };
-
-    const getPitcherColor = (value: number): string | null => {
-        const percentile = getPitcherPercentile(value);
-        if (percentile === 0.5) return null; // no color at 50th percentile
-        let hue: number;
-        let saturation: number;
-        if (percentile < 0.5) {
-            hue = 0;
-            saturation = (0.5 - percentile) * 140;
-        } else {
-            hue = 120;
-            saturation = (percentile - 0.5) * 140;
-        }
-        saturation = Math.min(saturation, 100);
-        return `hsl(${hue}, ${saturation}%, 50%)`;
-    };
-
-
 
     return (
         <div className="min-h-full p-8">
@@ -100,13 +83,13 @@ export default async function Home() {
                                     <td className="border border-gray-300 px-4 py-2">{team}</td>
                                     <td
                                         className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: batterValue > 0 ? (getBatterColor(batterValue) || 'transparent') : 'transparent' }}
+                                        style={{ backgroundColor: batterValue > 0 ? (getColor(batterValue, batterValuesList) || 'transparent') : 'transparent' }}
                                     >
                                         {batterValue.toFixed(3)}
                                     </td>
                                     <td
                                         className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: pitcherValue > 0 ? (getPitcherColor(pitcherValue) || 'transparent') : 'transparent' }}
+                                        style={{ backgroundColor: pitcherValue > 0 ? (getColor(pitcherValue, pitcherValuesList) || 'transparent') : 'transparent' }}
                                     >
                                         {pitcherValue.toFixed(3)}
                                     </td>
