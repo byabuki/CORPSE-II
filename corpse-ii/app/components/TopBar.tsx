@@ -2,14 +2,14 @@ import Image from 'next/image';
 
 export default function TopBar() {
     return (
-        <header className="bg-black border-b border-gray-700 px-6 py-4">
+        <header className="bg-black border-b border-gray-700 px-6 py-2">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-white">CORe Projection System for Evaluation</h1>
+                <h1 className="text-xl font-bold text-white">CORe Projection System for Evaluation</h1>
                 <Image
-                    src="/gptsultant.png"
+                    src="/gunsultant.png"
                     alt="CORPSE II Logo"
-                    width={80}
-                    height={80}
+                    width={60}
+                    height={60}
                     className="rounded"
                 />
             </div>
