@@ -23,3 +23,10 @@ export interface TeamsAndKeepers {
 }
 
 export type PlayerValues = Record<string, unknown>[];
+
+export interface PlayerRecord {
+    team: string;
+    ztotal: number;
+    nameascii?: string;
+    name?: string;
+}

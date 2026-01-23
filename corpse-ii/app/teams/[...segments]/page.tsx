@@ -1,5 +1,8 @@
-import Link from 'next/link';
-import { getTeamsFromDB, getCompleteBatterValues, getCompletePitcherValues } from '@/app/lib/helpers';
+'use client';
+
+import { useFantasyData } from '../../context/FantasyDataContext';
+import { useEffect, useState } from 'react';
+import LoadingIndicator from '../../components/LoadingIndicator';
 
 interface BatterRecord {
     name: string;
@@ -24,40 +27,35 @@ interface PitcherRecord {
 }
 
 interface PageProps {
-    params: Promise<{
+    params: {
         segments: string[];
-    }>;
+    };
 }
 
-export default async function TeamPage({ params }: PageProps) {
-    const teams = await getTeamsFromDB();
-    const batterValues = await getCompleteBatterValues();
-    const pitcherValues = await getCompletePitcherValues();
+export default function TeamPage({ params }: PageProps) {
+    const { battersValues, pitchersValues, teamsAndPlayers } = useFantasyData();
 
-    const { segments } = await params;
-    const teamName = decodeURIComponent(segments.join('/'));
-    const teamPlayers = teams[teamName];
+    const [teamName, setTeamName] = useState('');
 
-    const teamBatters = batterValues.filter(batter => teamPlayers.includes(batter.nameascii as string)) as unknown as BatterRecord[];
-    const teamPitchers = pitcherValues.filter(pitcher => teamPlayers.includes(pitcher.nameascii as string)) as unknown as PitcherRecord[];
+    useEffect(() => {
+        async function setName() {
+            const { segments } = await params;
+            const name = decodeURIComponent(segments.join('/'));
+            setTeamName(name);
+        }
+        setName();
+    }, [params]);
 
+    if (!teamName)
+        return null;
 
-    if (!teamPlayers) {
-        return (
-            <div className="flex items-center justify-center min-h-full">
-                <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">Team Not Found</h1>
-                    <p className="text-gray-400 mb-8">The team &#34;{teamName}&#34; could not be found.</p>
-                    <Link
-                        href="/teams"
-                        className="text-blue-400 hover:text-blue-300 underline"
-                    >
-                        ← Back to Teams
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+    if (Object.keys(teamsAndPlayers).length === 0 || !pitchersValues || !battersValues)
+        return <LoadingIndicator />;
+
+    const teamPlayers = teamsAndPlayers[teamName];
+
+    const teamBatters = battersValues?.filter(batter => batter.nameascii && teamPlayers?.includes(batter.nameascii)) as unknown as BatterRecord[];
+    const teamPitchers = pitchersValues?.filter(pitcher => pitcher.nameascii && teamPlayers?.includes(pitcher.nameascii)) as unknown as PitcherRecord[];
 
     return (
         <div className="min-h-full p-8">
@@ -85,9 +83,6 @@ export default async function TeamPage({ params }: PageProps) {
                             </thead>
                             <tbody>
                                 {teamBatters.map((batter, index) => (
-
-
-
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border border-gray-300 px-4 py-2">{batter.name}</td>
                                         <td className="border border-gray-300 px-4 py-2">{batter.pa.toFixed(1)}</td>
@@ -137,15 +132,6 @@ export default async function TeamPage({ params }: PageProps) {
                         </table>
                     </div>
                 )}
-
-                <div className="mt-8 text-center">
-                    <Link
-                        href="/"
-                        className="text-blue-400 hover:text-blue-300 underline"
-                    >
-                        ← Back to Home
-                    </Link>
-                </div>
             </div>
         </div>
     );

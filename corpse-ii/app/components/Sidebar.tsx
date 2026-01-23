@@ -2,28 +2,15 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useFantasyData } from '../context/FantasyDataContext';
 
 const COLLAPSE_VALUE = 1024;
 
 export default function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [teams, setTeams] = useState<string[]>([]);
+    const { teamsAndPlayers } = useFantasyData();
 
     useEffect(() => {
-        // Fetch teams on client side
-        const fetchTeams = async () => {
-            try {
-                const response = await fetch('/api/v1/fetch-teams');
-                const data = await response.json();
-                const teamNames = Object.keys(data).sort();
-                setTeams(teamNames);
-            } catch (error) {
-                console.error('Failed to fetch teams:', error);
-            }
-        };
-
-        fetchTeams();
-
         // Check initial window size
         const checkWidth = () => {
             setIsCollapsed(window.innerWidth < COLLAPSE_VALUE);
@@ -36,6 +23,8 @@ export default function Sidebar() {
 
         return () => window.removeEventListener('resize', checkWidth);
     }, []);
+
+    const teams = Object.keys(teamsAndPlayers).sort()
 
     return (
         <aside className={`bg-amber-50 border-r border-amber-200 ${isCollapsed ? 'w-16' : 'w-64'}`}>

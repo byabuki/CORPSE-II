@@ -1,23 +1,7 @@
 'use client';
 
-import { getCompleteBatterValues, getCompletePitcherValues } from '@/app/lib/helpers';
-import { useEffect, useState } from 'react';
-
-interface PlayerRecord {
-    team: string;
-    ztotal: number;
-}
-
-const LOADING_MESSAGES = [
-    'Loading...',
-    'Reloading the matrix',
-    'Making your team project worse',
-    'Boiling the farfalle',
-    'Simmering the pomodoro',
-    'Comma separating some values',
-    'Installing Excel',
-    'How do auction values work again?',
-];
+import { useFantasyData } from './context/FantasyDataContext';
+import LoadingIndicator from './components/LoadingIndicator';
 
 function getPercentile(value: number, values: number[]) {
     if (values.length === 0) return 0;
@@ -42,56 +26,13 @@ function getColor(value: number, values: number[]): string | null {
 };
 
 export default function Home() {
-    const [battersValues, setBattersValues] = useState<PlayerRecord[]>();
-    const [pitchersValues, setPitchersValues] = useState<PlayerRecord[]>();
-    const [loadingMessage, setLoadingMessage] = useState<string>();
+    const {
+        battersValues,
+        pitchersValues,
+    } = useFantasyData();
 
-    useEffect(() => {
-        const randomMessage = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLoadingMessage(randomMessage);
-    }, []);
-
-    useEffect(() => {
-        async function getCorpseValues() {
-            async function getBatterValues() {
-                try {
-                    const result = (await getCompleteBatterValues()) as unknown as PlayerRecord[];
-                    setBattersValues(result);
-                    console.log(result);
-                } catch (e) {
-                    console.error(`Could not retrieve batters data: ${e}`);
-                    setBattersValues([]);
-                }
-            }
-
-            async function getPitcherValues() {
-                try {
-                    const result = (await getCompletePitcherValues()) as unknown as PlayerRecord[];
-                    setPitchersValues(result);
-                    console.log(result);
-                } catch (e) {
-                    console.error(`Could not retrieve pitchers data: ${e}`);
-                    setPitchersValues([]);
-                }
-            }
-
-            await Promise.all([getBatterValues(), getPitcherValues()]);
-            console.log('completed fetch of all CORPSE data');
-        }
-        console.log('fetch players and values');
-        getCorpseValues();
-    }, []);
-
-    if (!battersValues || !pitchersValues) {
-        return (
-            <div className="min-h-full p-8">
-                <div className="max-w-4xl mx-auto">
-                    <h1 className="text-4xl font-bold mb-8 text-center">{loadingMessage}</h1>
-                </div>
-            </div>
-        );
-    }
+    if (!battersValues || !pitchersValues)
+        return <LoadingIndicator />;
 
     const batterTeamSums = battersValues.reduce((acc, batter) => {
         const team = batter.team;

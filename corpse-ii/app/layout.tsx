@@ -4,6 +4,7 @@ import './globals.css';
 import TopBar from './components/TopBar';
 import BottomBar from './components/BottomBar';
 import Sidebar from './components/Sidebar';
+import { FantasyDataProvider } from './context/FantasyDataContext';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -30,14 +31,16 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
             >
-                <TopBar />
-                <div className="flex min-h-screen">
-                    <Sidebar />
-                    <main className="flex-1 flex flex-col">
-                        {children}
-                    </main>
-                </div>
-                <BottomBar />
+                <FantasyDataProvider>
+                    <TopBar />
+                    <div className="flex min-h-screen">
+                        <Sidebar />
+                        <main className="flex-1 flex flex-col">
+                            {children}
+                        </main>
+                    </div>
+                    <BottomBar />
+                </FantasyDataProvider>
             </body>
         </html>
     );
