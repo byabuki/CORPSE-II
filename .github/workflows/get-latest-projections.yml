@@ -20,7 +20,7 @@ jobs:
         run: |
           curl --request POST \
             --url https://corpse-ii.vercel.app/api/v1/generate \
-            --header 'Authorization: Bearer bf2dfb2067909a337c4985a52153538419d6530e0e57a2615e6e8c28deb6723d'
+            --header "Authorization: Bearer $BEARER_TOKEN"
 
       - name: Check response
         if: failure()
