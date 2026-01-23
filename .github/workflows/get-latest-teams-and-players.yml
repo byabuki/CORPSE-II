@@ -18,9 +18,18 @@ jobs:
         env:
           BEARER_TOKEN: ${{ secrets.CORPSE_API_TOKEN }}
         run: |
-          curl --request POST \
+          if [ -z "$BEARER_TOKEN" ]; then
+            echo "Token is empty!"
+            exit 1
+          else
+            echo "Token is set (length: ${#BEARER_TOKEN})"
+          fi
+
+          set -e
+
+          curl -f --request POST \
             --url https://corpse-ii.vercel.app/api/v1/fetch-teams \
-            --header "Authorization: Bearer $BEARER_TOKEN"
+            --header "Authorization: Bearer ${BEARER_TOKEN}"
 
       - name: Check response
         if: failure()
