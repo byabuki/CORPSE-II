@@ -1,6 +1,7 @@
-import postgres from 'postgres';
 import { Logger } from './logger';
 import { TeamsAndKeepers, PlayerValues } from './types';
+
+const API_BASE_URL = 'https://corpse-ii.vercel.app';
 
 /**
  * Converts a string to ASCII by removing diacritical marks (accents).
@@ -19,7 +20,7 @@ export async function getTeamsFromDB(): Promise<TeamsAndKeepers> {
     Logger.info('Retrieving teams and players from API');
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/fetch-teams`);
+        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/fetch-teams`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -43,7 +44,7 @@ export async function getCompleteBatterValues(): Promise<PlayerValues> {
     Logger.info('Retrieving batter values from API');
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/get-batter-values`);
+        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-batter-values`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -67,7 +68,7 @@ export async function getCompletePitcherValues(): Promise<PlayerValues> {
     Logger.info('Retrieving pitcher values from API');
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/get-pitcher-values`);
+        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-pitcher-values`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
