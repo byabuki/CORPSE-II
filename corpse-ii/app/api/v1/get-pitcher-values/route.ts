@@ -3,15 +3,7 @@ import postgres from 'postgres';
 
 import { Logger } from '@/app/lib/logger';
 
-export async function GET(request: Request) {
-    // Check authorization header
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
-
-    if (token !== process.env.API_SECRET_TOKEN) {
-        return NextResponse.json({ error: 'Unauthorized 🔒' }, { status: 401 });
-    }
-
+export async function GET() {
     try {
         const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 

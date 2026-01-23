@@ -4,12 +4,32 @@ import postgres from 'postgres';
 
 import { Logger } from '@/app/lib/logger';
 import { parseKeeperData } from '@/app/lib/keepers';
-import { getTeamsFromDB } from '@/app/lib/helpers';
+import { TeamsAndKeepers } from '@/app/lib/types';
 
 export async function GET() {
     try {
-        const teams = await getTeamsFromDB();
-        return NextResponse.json(teams);
+        Logger.info('Retrieving teams and players from database');
+        const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
+
+        try {
+            const rows = await sql`SELECT team, player FROM team_composition_2026`;
+
+            const result: TeamsAndKeepers = {};
+            for (const row of rows) {
+                if (!result[row.team]) {
+                    result[row.team] = [];
+                }
+                result[row.team].push(row.player);
+            }
+
+            Logger.info(`Retrieved ${Object.keys(result).length} teams`);
+            return NextResponse.json(result);
+        } catch (error) {
+            Logger.error(`Failed to retrieve teams from database: ${error}`);
+            throw error;
+        } finally {
+            await sql.end();
+        }
     } catch (error) {
         Logger.error(`Failed to fetch teams: ${error}`);
         return NextResponse.json({ error: 'Failed to fetch teams' }, { status: 500 });
