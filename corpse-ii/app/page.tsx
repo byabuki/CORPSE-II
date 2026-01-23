@@ -1,17 +1,23 @@
-import { getBatterValuesFromDB, getPitcherValuesFromDB } from '@/app/lib/helpers';
+'use client';
+
+import { getCompleteBatterValues, getCompletePitcherValues } from '@/app/lib/helpers';
+import { useEffect, useState } from 'react';
 
 interface PlayerRecord {
     team: string;
     ztotal: number;
 }
 
-// Forces the page to be rendered dynamically on every request
-// Opts out of static optimization (no pre-rendering, or build time caching)
-export const dynamic = 'force-dynamic';
-
-// Sets revalidation time to 0 seconds - tells Next.js not to cache at all,
-// also prevents ISR from caching/instructs Vercel CDN not to cache
-export const revalidate = 0;
+const LOADING_MESSAGES = [
+    'Loading...',
+    'Reloading the matrix',
+    'Making your team project worse',
+    'Boiling the farfalle',
+    'Simmering the pomodoro',
+    'Comma separating some values',
+    'Installing Excel',
+    'How do auction values work again?',
+];
 
 function getPercentile(value: number, values: number[]) {
     if (values.length === 0) return 0;
@@ -35,11 +41,59 @@ function getColor(value: number, values: number[]): string | null {
     return `hsl(${hue}, ${saturation}%, 50%)`;
 };
 
-export default async function Home() {
-    const batterValues = (await getBatterValuesFromDB()) as unknown as PlayerRecord[];
-    const pitcherValues = (await getPitcherValuesFromDB()) as unknown as PlayerRecord[];
+export default function Home() {
+    const [battersValues, setBattersValues] = useState<PlayerRecord[]>();
+    const [pitchersValues, setPitchersValues] = useState<PlayerRecord[]>();
+    const [loadingMessage, setLoadingMessage] = useState<string>();
 
-    const batterTeamSums = batterValues.reduce((acc, batter) => {
+    useEffect(() => {
+        const randomMessage = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLoadingMessage(randomMessage);
+    }, []);
+
+    useEffect(() => {
+        async function getCorpseValues() {
+            async function getBatterValues() {
+                try {
+                    const result = (await getCompleteBatterValues()) as unknown as PlayerRecord[];
+                    setBattersValues(result);
+                    console.log(result);
+                } catch (e) {
+                    console.error(`Could not retrieve batters data: ${e}`);
+                    setBattersValues([]);
+                }
+            }
+
+            async function getPitcherValues() {
+                try {
+                    const result = (await getCompletePitcherValues()) as unknown as PlayerRecord[];
+                    setPitchersValues(result);
+                    console.log(result);
+                } catch (e) {
+                    console.error(`Could not retrieve pitchers data: ${e}`);
+                    setPitchersValues([]);
+                }
+            }
+
+            await Promise.all([getBatterValues(), getPitcherValues()]);
+            console.log('completed fetch of all CORPSE data');
+        }
+        console.log('fetch players and values');
+        getCorpseValues();
+    }, []);
+
+    if (!battersValues || !pitchersValues) {
+        return (
+            <div className="min-h-full p-8">
+                <div className="max-w-4xl mx-auto">
+                    <h1 className="text-4xl font-bold mb-8 text-center">{loadingMessage}</h1>
+                </div>
+            </div>
+        );
+    }
+
+    const batterTeamSums = battersValues.reduce((acc, batter) => {
         const team = batter.team;
         const ztotal = batter.ztotal > 0 ? batter.ztotal : 0;
         if (!acc[team])
@@ -48,7 +102,7 @@ export default async function Home() {
         return acc;
     }, {} as Record<string, number>);
 
-    const pitcherTeamSums = pitcherValues.reduce((acc, pitcher) => {
+    const pitcherTeamSums = pitchersValues.reduce((acc, pitcher) => {
         const team = pitcher.team;
         const ztotal = pitcher.ztotal > 0 ? pitcher.ztotal : 0;
         if (!acc[team])

@@ -39,7 +39,7 @@ export async function getTeamsFromDB(): Promise<TeamsAndKeepers> {
  * Retrieves all batter values from the API.
  * @returns Promise<BatterValues> - Array of batter value records
  */
-export async function getBatterValuesFromDB(): Promise<PlayerValues> {
+export async function getCompleteBatterValues(): Promise<PlayerValues> {
     Logger.info('Retrieving batter values from API');
 
     try {
@@ -63,7 +63,7 @@ export async function getBatterValuesFromDB(): Promise<PlayerValues> {
     }
 }
 
-export async function getPitcherValuesFromDB(): Promise<PlayerValues> {
+export async function getCompletePitcherValues(): Promise<PlayerValues> {
     Logger.info('Retrieving pitcher values from API');
 
     try {

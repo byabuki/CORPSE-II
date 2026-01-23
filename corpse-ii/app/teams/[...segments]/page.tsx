@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getTeamsFromDB, getBatterValuesFromDB, getPitcherValuesFromDB } from '@/app/lib/helpers';
+import { getTeamsFromDB, getCompleteBatterValues, getCompletePitcherValues } from '@/app/lib/helpers';
 
 interface BatterRecord {
     name: string;
@@ -31,8 +31,8 @@ interface PageProps {
 
 export default async function TeamPage({ params }: PageProps) {
     const teams = await getTeamsFromDB();
-    const batterValues = await getBatterValuesFromDB();
-    const pitcherValues = await getPitcherValuesFromDB();
+    const batterValues = await getCompleteBatterValues();
+    const pitcherValues = await getCompletePitcherValues();
 
     const { segments } = await params;
     const teamName = decodeURIComponent(segments.join('/'));

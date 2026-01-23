@@ -87,7 +87,6 @@ export function generateZValues(categoriesConfig: CategoriesConfig, playerRows: 
             }
         });
 
-        // const zScores = Object.keys(player).filter(key => key.startsWith('z') && key !== 'zTOTAL').map(key => player[key] as number);
-        player.zTOTAL = zTotal; // zScores.reduce((sum, score) => sum + score, 0);
+        player.zTOTAL = zTotal;
     });
 }
