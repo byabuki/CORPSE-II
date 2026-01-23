@@ -9,6 +9,7 @@ on:
 jobs:
   send-request:
     runs-on: ubuntu-latest
+    environment: Production
 
     steps:
       - name: POST to CORPSE fetch-teams API route
