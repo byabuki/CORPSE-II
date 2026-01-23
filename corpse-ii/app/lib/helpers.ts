@@ -12,71 +12,77 @@ export function toAscii(str: string): string {
 }
 
 /**
- * Retrieves teams and their players from the database.
+ * Retrieves teams and their players from the API.
  * @returns Promise<TeamsAndKeepers> - Object mapping team names to arrays of player names
  */
 export async function getTeamsFromDB(): Promise<TeamsAndKeepers> {
-    const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
-
-    Logger.info('Retrieving teams and players from database');
+    Logger.info('Retrieving teams and players from API');
 
     try {
-        const rows = await sql`SELECT team, player FROM team_composition_2026`;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/fetch-teams`);
 
-        const result: TeamsAndKeepers = {};
-        for (const row of rows) {
-            if (!result[row.team]) {
-                result[row.team] = [];
-            }
-            result[row.team].push(row.player);
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
         }
+
+        const result = await response.json();
 
         Logger.info(`Retrieved ${Object.keys(result).length} teams`);
         return result;
     } catch (error) {
-        Logger.error(`Failed to retrieve teams from database: ${error}`);
+        Logger.error(`Failed to retrieve teams from API: ${error}`);
         throw error;
-    } finally {
-        await sql.end();
     }
 }
 
 /**
- * Retrieves all batter values from the database.
+ * Retrieves all batter values from the API.
  * @returns Promise<BatterValues> - Array of batter value records
  */
 export async function getBatterValuesFromDB(): Promise<PlayerValues> {
-    const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
-
-    Logger.info('Retrieving batter values from database');
+    Logger.info('Retrieving batter values from API');
 
     try {
-        const rows = await sql`SELECT * FROM team_batters_joined`;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/get-batter-values`);
 
-        Logger.info(`Retrieved ${rows.length} batter value records`);
-        return rows;
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch batter values');
+        }
+
+        Logger.info(`Retrieved ${result.data.length} batter value records`);
+        return result.data;
     } catch (error) {
-        Logger.error(`Failed to retrieve batter values from database: ${error}`);
+        Logger.error(`Failed to retrieve batter values from API: ${error}`);
         throw error;
-    } finally {
-        await sql.end();
     }
 }
 
 export async function getPitcherValuesFromDB(): Promise<PlayerValues> {
-    const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
-
-    Logger.info('Retrieving pitcher values from database');
+    Logger.info('Retrieving pitcher values from API');
 
     try {
-        const rows = await sql`SELECT * FROM team_pitchers_joined`;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/get-pitcher-values`);
 
-        Logger.info(`Retrieved ${rows.length} pitcher value records`);
-        return rows;
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch pitcher values');
+        }
+
+        Logger.info(`Retrieved ${result.data.length} pitcher value records`);
+        return result.data;
     } catch (error) {
-        Logger.error(`Failed to retrieve pitcher values from database: ${error}`);
+        Logger.error(`Failed to retrieve pitcher values from API: ${error}`);
         throw error;
-    } finally {
-        await sql.end();
     }
 }
