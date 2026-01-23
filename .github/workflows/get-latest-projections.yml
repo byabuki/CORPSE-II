@@ -15,21 +15,19 @@ jobs:
         run: sleep $((RANDOM % 300))
 
       - name: POST to CORPSE generate API route
-        env:
-          BEARER_TOKEN: ${{ secrets.CORPSE_API_TOKEN }}
         run: |
-          if [ -z "$BEARER_TOKEN" ]; then
+          if [ -z "${{ secrets.CORPSE_API_TOKEN }}" ]; then
             echo "Token is empty!"
             exit 1
           else
-            echo "Token is set (length: ${#BEARER_TOKEN})"
+            echo "Token is set"
           fi
 
           set -e
 
           curl -f --request POST \
-            --url <url> \
-            --header "Authorization: Bearer ${BEARER_TOKEN}"
+            --url https://corpse-ii.vercel.app/api/v1/generate \
+            --header "Authorization: Bearer ${{ secrets.CORPSE_API_TOKEN }}"
 
       - name: Check response
         if: failure()
