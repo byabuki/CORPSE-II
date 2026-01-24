@@ -1,7 +1,7 @@
-import { TeamsAndKeepers } from './types';
+import { TeamsAndPlayers } from './types';
 
-export function parseKeeperData(values: string[][]): TeamsAndKeepers {
-    const result: TeamsAndKeepers = {};
+export function parseKeeperData(values: string[][]): TeamsAndPlayers {
+    const result: TeamsAndPlayers = {};
 
     // First row contains team names (every 3rd column starting at 0)
     const teamNames: string[] = [];

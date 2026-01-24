@@ -18,7 +18,7 @@ export interface Player {
   tag: string;
 }
 
-export interface TeamsAndKeepers {
+export interface TeamsAndPlayers {
   [teamName: string]: string[];
 }
 

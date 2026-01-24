@@ -4,11 +4,29 @@ import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useFantasyData } from './context/FantasyDataContext';
 import LoadingIndicator from './components/LoadingIndicator';
+import { calculateMean, calculateStdDev } from './lib/stats';
 
 function getPercentile(value: number, values: number[]) {
     if (values.length === 0) return 0;
-    const index = values.findIndex(val => val >= value);
-    return index / (values.length - 1);
+    const sorted = [...values].sort((a, b) => a - b);
+    if (value <= sorted[0]) return 0;
+    if (value >= sorted[sorted.length - 1]) return 1;
+    let low = 0;
+    let high = sorted.length - 1;
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        if (sorted[mid] < value) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    const index = low;
+    const prev = sorted[index - 1];
+    const next = sorted[index];
+    const fraction = (value - prev) / (next - prev);
+    const percentile = (index - 1 + fraction) / (sorted.length - 1);
+    return percentile;
 };
 
 function getColor(value: number, values: number[]): string | null {
@@ -31,43 +49,80 @@ export default function Home() {
     const {
         battersValues,
         pitchersValues,
+        teamsAndPlayers,
     } = useFantasyData();
 
-    // State for chart view toggle - must be at top level before any conditional returns
+    // State for chart view toggle
     const [view, setView] = useState('both');
 
-    if (!battersValues || !pitchersValues)
+    if (!battersValues || !pitchersValues || !teamsAndPlayers)
         return <LoadingIndicator />;
 
-    const batterTeamSums = battersValues.reduce((acc, batter) => {
-        const team = batter.team;
-        const ztotal = batter.ztotal > 0 ? batter.ztotal : 0;
-        if (!acc[team])
-            acc[team] = 0;
-        acc[team] += ztotal;
-        return acc;
+    const batterTeamSums = Object.entries(teamsAndPlayers).reduce((batterAcc, [team, players]) => {
+        batterAcc[team] = 0;
+        for (const playerName of players) {
+            const batter = battersValues.find(b => b.nameascii === playerName && b.team === team);
+            if (batter) {
+                if (process.env.NODE_ENV)
+                    console.log(`add batter ${batter.nameascii} to team ${team}, value ${batter.ztotal}`);
+                const ztotal = batter.ztotal > 0 ? batter.ztotal : 0;
+                batterAcc[team] += ztotal;
+            }
+        }
+        return batterAcc;
     }, {} as Record<string, number>);
 
-    const pitcherTeamSums = pitchersValues.reduce((acc, pitcher) => {
-        const team = pitcher.team;
-        const ztotal = pitcher.ztotal > 0 ? pitcher.ztotal : 0;
-        if (!acc[team])
-            acc[team] = 0;
-        acc[team] += ztotal;
-        return acc;
+    const batterValuesAvg = calculateMean(Object.values(batterTeamSums));
+    const batterValuesStdDev = calculateStdDev(Object.values(batterTeamSums), batterValuesAvg);
+    const batterZzs = Object.fromEntries(
+        Object.entries(batterTeamSums).map(([team, zTotalSum]) =>
+            [team, ((zTotalSum - batterValuesAvg) / batterValuesStdDev) ]
+        )
+    );
+
+    const pitcherTeamSums = Object.entries(teamsAndPlayers).reduce((pitcherAcc, [team, players]) => {
+        pitcherAcc[team] = 0;
+        for (const playerName of players) {
+            const pitcher = pitchersValues.find(p => p.nameascii === playerName && p.team === team);
+            if (pitcher) {
+                if (process.env.NODE_ENV)
+                    console.log(`add pitcher ${pitcher.nameascii} to team ${team}, value ${pitcher.ztotal}`);
+                const ztotal = pitcher.ztotal > 0 ? pitcher.ztotal : 0;
+                pitcherAcc[team] += ztotal;
+            }
+        }
+        return pitcherAcc;
     }, {} as Record<string, number>);
 
-    // Calculate percentiles for batters zTotal color coding
-    const batterValuesList = Object.values(batterTeamSums).filter(val => val > 0).sort((a, b) => a - b);
+    const pitcherValuesAvg = calculateMean(Object.values(pitcherTeamSums));
+    const pitcherValuesStdDev = calculateStdDev(Object.values(pitcherTeamSums), pitcherValuesAvg);
+    const pitcherZzs = Object.fromEntries(
+        Object.entries(pitcherTeamSums).map(([team, zTotalSum]) =>
+            [team, ((zTotalSum - pitcherValuesAvg) / pitcherValuesStdDev) ]
+        )
+    );
 
-    // Calculate percentiles for pitchers zTotal color coding
-    const pitcherValuesList = Object.values(pitcherTeamSums).filter(val => val > 0).sort((a, b) => a - b);
+    const offPlus = Object.fromEntries(
+        Object.entries(batterZzs).map(([team, z]) => [team, ((z - 0) / 3 + 1) * 100])
+    );
+
+    const pitchPlus = Object.fromEntries(
+        Object.entries(pitcherZzs).map(([team, z]) => [team, ((z - 0) / 3 + 1) * 100])
+    );
+
+    const teamZzTotals = Object.entries(teamsAndPlayers).reduce((teamZzTotalsAcc, [team, ]) => {
+        teamZzTotalsAcc[team] = batterZzs[team] + pitcherZzs[team];
+
+        return teamZzTotalsAcc;
+    }, {} as Record<string, number>);
+
+    const sortedTeams = Object.keys(teamsAndPlayers).sort((a, b) => teamZzTotals[b] - teamZzTotals[a]);
 
     // Prepare chart data
     const chartData = Array.from(new Set([...Object.keys(batterTeamSums), ...Object.keys(pitcherTeamSums)])).sort().map(team => ({
         name: team,
-        battersValue: batterTeamSums[team] || 0,
-        pitchersValue: pitcherTeamSums[team] || 0
+        battersValue: offPlus[team] || 0,
+        pitchersValue: pitchPlus[team] || 0
     }));
 
     return (
@@ -97,7 +152,7 @@ export default function Home() {
                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                         >
-                            Batters Value Only
+                            Offense+ Only
                         </button>
                         <button
                             onClick={() => setView('pitchers')}
@@ -107,7 +162,7 @@ export default function Home() {
                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                         >
-                            Pitchers Value Only
+                            Pitching+ Only
                         </button>
                     </div>
 
@@ -120,10 +175,10 @@ export default function Home() {
                                 <Tooltip />
                                 <Legend verticalAlign="top" />
                                 {(view === 'both' || view === 'batters') && (
-                                    <Bar dataKey="battersValue" fill="#3b82f6" name="Batters Value" stackId={view === 'both' ? 'stack' : undefined} />
+                                    <Bar dataKey="battersValue" fill="#3b82f6" name="Offense+" stackId={view === 'both' ? 'stack' : undefined} />
                                 )}
                                 {(view === 'both' || view === 'pitchers') && (
-                                    <Bar dataKey="pitchersValue" fill="#bd2929" name="Pitchers Value" stackId={view === 'both' ? 'stack' : undefined} />
+                                    <Bar dataKey="pitchersValue" fill="#bd2929" name="Pitching+" stackId={view === 'both' ? 'stack' : undefined} />
                                 )}
                             </BarChart>
                         </ResponsiveContainer>
@@ -134,29 +189,78 @@ export default function Home() {
                     <thead>
                         <tr className="bg-gray-100 dark:bg-gray-800">
                             <th className="border border-gray-300 px-4 py-2">Team</th>
-                            <th className="border border-gray-300 px-4 py-2">Batters zTotal</th>
-                            <th className="border border-gray-300 px-4 py-2">Pitchers zTotal</th>
+                            <th className="border border-gray-300 px-4 py-2">Batters zScore</th>
+                            <th className="border border-gray-300 px-4 py-2">Pitchers zScore</th>
+                            <th className="border border-gray-300 px-4 py-2">Total zScore</th>
+                            <th className="border border-gray-300 px-4 py-2">Wins</th>
+                            <th className="border border-gray-300 px-4 py-2">Losses</th>
+                            <th className="border border-gray-300 px-4 py-2">Win%</th>
+                            <th className="border border-gray-300 px-4 py-2">Offense+</th>
+                            <th className="border border-gray-300 px-4 py-2">Pitching+</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.from(new Set([...Object.keys(batterTeamSums), ...Object.keys(pitcherTeamSums)])).sort().map(team => {
+                        {sortedTeams.map(team => {
                             const battersValue = batterTeamSums[team] || 0;
                             const pitchersValue = pitcherTeamSums[team] || 0;
+                            const battersZScore = batterZzs[team];
+                            const pitchersZScore = pitcherZzs[team];
+                            const totalZScore = teamZzTotals[team];
+                            const wins = teamZzTotals[team] * 23 / 2 + 132;
+                            const losses = 264 - wins;
+                            const winPercentage = wins / 264;
                             return (
                                 <tr key={team} className="hover:bg-gray-50">
                                     <td className="border border-gray-300 px-4 py-2">{team}</td>
                                     <td
                                         className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: battersValue > 0 ? (getColor(battersValue, batterValuesList) || 'transparent') : 'transparent' }}
+                                        style={{ backgroundColor: getColor(battersZScore, Object.values(batterZzs)) || 'transparent' }}
                                     >
-                                        {battersValue.toFixed(3)}
+                                        {battersZScore.toFixed(2)}
                                     </td>
                                     <td
                                         className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: pitchersValue > 0 ? (getColor(pitchersValue, pitcherValuesList) || 'transparent') : 'transparent' }}
+                                        style={{ backgroundColor: getColor(pitchersZScore, Object.values(pitcherZzs)) || 'transparent' }}
                                     >
-                                        {pitchersValue.toFixed(3)}
+                                        {pitchersZScore.toFixed(2)}
                                     </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: getColor(totalZScore, Object.values(teamZzTotals)) || 'transparent' }}
+                                    >
+                                        {totalZScore.toFixed(2)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: 'transparent' }}
+                                    >
+                                        {wins.toFixed(1)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: 'transparent' }}
+                                    >
+                                        {losses.toFixed(1)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: getColor(totalZScore, Object.values(teamZzTotals)) || 'transparent' }}
+                                    >
+                                        {winPercentage.toFixed(3)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: getColor(battersZScore, Object.values(batterZzs)) || 'transparent' }}
+                                    >
+                                        {offPlus[team].toFixed(3)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: getColor(pitchersZScore, Object.values(pitcherZzs)) || 'transparent' }}
+                                    >
+                                        {pitchPlus[team].toFixed(3)}
+                                    </td>
+
                                 </tr>
                             );
                         })}

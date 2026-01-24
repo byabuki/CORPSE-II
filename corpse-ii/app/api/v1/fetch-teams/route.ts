@@ -4,7 +4,7 @@ import postgres from 'postgres';
 
 import { Logger } from '@/app/lib/logger';
 import { parseKeeperData } from '@/app/lib/keepers';
-import { TeamsAndKeepers } from '@/app/lib/types';
+import { TeamsAndPlayers } from '@/app/lib/types';
 
 export async function GET() {
     try {
@@ -14,7 +14,7 @@ export async function GET() {
         try {
             const rows = await sql`SELECT team, player FROM team_composition_2026`;
 
-            const result: TeamsAndKeepers = {};
+            const result: TeamsAndPlayers = {};
             for (const row of rows) {
                 if (!result[row.team]) {
                     result[row.team] = [];

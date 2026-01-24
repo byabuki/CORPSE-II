@@ -1,12 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { TeamsAndKeepers, PlayerRecord } from '../lib/types';
+import { TeamsAndPlayers, PlayerRecord } from '../lib/types';
 import { getCompleteBatterValues, getCompletePitcherValues } from '../lib/helpers';
 
 interface FantasyDataContextType {
-    teamsAndPlayers: TeamsAndKeepers;
-    setTeamsAndPlayers: (newData: TeamsAndKeepers) => void;
+    teamsAndPlayers: TeamsAndPlayers;
+    setTeamsAndPlayers: (newData: TeamsAndPlayers) => void;
     battersValues: PlayerRecord[] | undefined;
     setBattersValues: (values: PlayerRecord[] | undefined) => void;
     pitchersValues: PlayerRecord[] | undefined;
@@ -24,7 +24,7 @@ export function useFantasyData() {
 }
 
 export function FantasyDataProvider({ children }: { children: ReactNode }) {
-    const [teamsAndPlayers, setTeamsAndPlayersState] = useState<TeamsAndKeepers>({});
+    const [teamsAndPlayers, setTeamsAndPlayersState] = useState<TeamsAndPlayers>({});
     const [battersValues, setBattersValues] = useState<PlayerRecord[]>();
     const [pitchersValues, setPitchersValues] = useState<PlayerRecord[]>();
 
@@ -70,7 +70,7 @@ export function FantasyDataProvider({ children }: { children: ReactNode }) {
         getCorpseValues();
     }, []);
 
-    const setTeamsAndPlayers = (newData: TeamsAndKeepers) => {
+    const setTeamsAndPlayers = (newData: TeamsAndPlayers) => {
         setTeamsAndPlayersState(newData);
     };
 

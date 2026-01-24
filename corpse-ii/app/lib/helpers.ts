@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { TeamsAndKeepers, PlayerValues } from './types';
+import { TeamsAndPlayers, PlayerValues } from './types';
 
 const API_BASE_URL = 'https://corpse-ii.vercel.app';
 
@@ -16,7 +16,7 @@ export function toAscii(str: string): string {
  * Retrieves teams and their players from the API.
  * @returns Promise<TeamsAndKeepers> - Object mapping team names to arrays of player names
  */
-export async function getTeamsFromDB(): Promise<TeamsAndKeepers> {
+export async function getTeamsFromDB(): Promise<TeamsAndPlayers> {
     Logger.info('Retrieving teams and players from API');
 
     try {
