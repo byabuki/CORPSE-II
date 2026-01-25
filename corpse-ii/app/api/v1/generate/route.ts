@@ -61,34 +61,14 @@ export async function POST(request: Request) {
             ]);
 
             Logger.info('perform batters SQL operations');
+
+            await sql`TRUNCATE TABLE batters_values_2026`;
+
             for (let i = 0; i < valuesArrays.length; i += 500) {
                 const batch = valuesArrays.slice(i, i + 500);
                 const result = await sql`
                     INSERT INTO batters_values_2026 (${sql(columns)})
                     VALUES ${sql(batch)}
-                    ON CONFLICT (player_id) DO UPDATE SET
-                      name = EXCLUDED.name,
-                      nameascii = EXCLUDED.nameascii,
-                      pa = EXCLUDED.pa,
-                      ab = EXCLUDED.ab,
-                      hr = EXCLUDED.hr,
-                      bb = EXCLUDED.bb,
-                      tb = EXCLUDED.tb,
-                      obp = EXCLUDED.obp,
-                      slg = EXCLUDED.slg,
-                      sb = EXCLUDED.sb,
-                      zhr = EXCLUDED.zhr,
-                      zbb = EXCLUDED.zbb,
-                      ztb = EXCLUDED.ztb,
-                      zobp = EXCLUDED.zobp,
-                      wobp = EXCLUDED.wobp,
-                      zslg = EXCLUDED.zslg,
-                      wslg = EXCLUDED.wslg,
-                      zwobp = EXCLUDED.zwobp,
-                      zwslg = EXCLUDED.zwslg,
-                      zsb = EXCLUDED.zsb,
-                      ztotal = EXCLUDED.ztotal,
-                      is_active = EXCLUDED.is_active
                 `;
                 battersSuccessfulRows += batch.length;
             }
@@ -141,35 +121,14 @@ export async function POST(request: Request) {
             ]);
 
             Logger.info('perform pitchers SQL operations');
+
+            await sql`TRUNCATE TABLE pitchers_values_2026`;
+            
             for (let i = 0; i < valuesArrays.length; i += 500) {
                 const batch = valuesArrays.slice(i, i + 500);
                 const result = await sql`
                     INSERT INTO pitchers_values_2026 (${sql(columns)})
                     VALUES ${sql(batch)}
-                    ON CONFLICT (player_id) DO UPDATE SET
-                        name = EXCLUDED.name,
-                        nameascii = EXCLUDED.nameascii,
-                        gs = EXCLUDED.gs,
-                        g = EXCLUDED.g,
-                        ip = EXCLUDED.ip,
-                        era = EXCLUDED.era,
-                        whip = EXCLUDED.whip,
-                        so = EXCLUDED.so,
-                        bb9 = EXCLUDED.bb9,
-                        qs = EXCLUDED.qs,
-                        svh = EXCLUDED.svh,
-                        zera = EXCLUDED.zera,
-                        zwhip = EXCLUDED.zwhip,
-                        zso = EXCLUDED.zso,
-                        zbb9 = EXCLUDED.zbb9,
-                        zqs = EXCLUDED.zqs,
-                        zsvh = EXCLUDED.zsvh,
-                        zwera = EXCLUDED.zwera,
-                        zwwhip = EXCLUDED.zwwhip,
-                        zwbb9 = EXCLUDED.zwbb9,
-                        ztotal = EXCLUDED.ztotal,
-                        is_active = EXCLUDED.is_active,
-                        updated_at = NOW()
                 `;
                 pitchersSuccessfulRows += batch.length;
             }
