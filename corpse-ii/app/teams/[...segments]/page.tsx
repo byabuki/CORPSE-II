@@ -3,28 +3,8 @@
 import { useFantasyData } from '../../context/FantasyDataContext';
 import { useEffect, useState } from 'react';
 import LoadingIndicator from '../../components/LoadingIndicator';
-
-interface BatterRecord {
-    name: string;
-    pa: number;
-    hr: number;
-    sb: number;
-    bb: number;
-    tb: number;
-    obp: number;
-    slg: number;
-}
-
-interface PitcherRecord {
-    name: string;
-    ip: number;
-    so: number;
-    era: number;
-    whip: number;
-    bb9: number;
-    qs: number;
-    svh: number;
-}
+import { BatterRecord, PitcherRecord } from '../../lib/types';
+import { getColor } from '../../lib/helpers';
 
 interface PageProps {
     params: {
@@ -54,8 +34,8 @@ export default function TeamPage({ params }: PageProps) {
 
     const teamPlayers = teamsAndPlayers[teamName];
 
-    const teamBatters = battersValues?.filter(batter => batter.nameascii && teamPlayers?.includes(batter.nameascii)) as unknown as BatterRecord[];
-    const teamPitchers = pitchersValues?.filter(pitcher => pitcher.nameascii && teamPlayers?.includes(pitcher.nameascii)) as unknown as PitcherRecord[];
+    const teamBatters = (battersValues?.filter(batter => batter.nameascii && teamPlayers?.includes(batter.nameascii)) as unknown as BatterRecord[]).sort((a, b) => b.ztotal - a.ztotal);
+    const teamPitchers = (pitchersValues?.filter(pitcher => pitcher.nameascii && teamPlayers?.includes(pitcher.nameascii)) as unknown as PitcherRecord[]).sort((a, b) => b.ztotal - a.ztotal);
 
     return (
         <div className="min-h-full p-8">
@@ -79,21 +59,28 @@ export default function TeamPage({ params }: PageProps) {
                                     <th className="border border-gray-300 px-4 py-2">TB</th>
                                     <th className="border border-gray-300 px-4 py-2">OBP</th>
                                     <th className="border border-gray-300 px-4 py-2">SLG</th>
+                                    <th className="border border-gray-300 px-4 py-2">zTotal</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {teamBatters.map((batter, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="border border-gray-300 px-4 py-2">{batter.name}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.pa.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.hr.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.sb.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.bb.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.tb.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.obp.toFixed(3)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{batter.slg.toFixed(3)}</td>
-                                    </tr>
-                                ))}
+                                {teamBatters.map((batter, index) => {
+                                    if (process.env.NODE_ENV)
+                                        console.log(batter);
+                                    return (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="border border-gray-300 px-4 py-2">{batter.name}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{batter.pa.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).hr, battersValues.map(b => (b as BatterRecord).hr)) || 'transparent' }}>{(batter as BatterRecord).hr.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).sb, battersValues.map(b => (b as BatterRecord).sb)) || 'transparent' }}>{(batter as BatterRecord).sb.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).bb, battersValues.map(b => (b as BatterRecord).bb)) || 'transparent' }}>{(batter as BatterRecord).bb.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).tb, battersValues.map(b => (b as BatterRecord).tb)) || 'transparent' }}>{(batter as BatterRecord).tb.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).obp, battersValues.map(b => (b as BatterRecord).obp)) || 'transparent' }}>{(batter as BatterRecord).obp.toFixed(3)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).slg, battersValues.map(b => (b as BatterRecord).slg)) || 'transparent' }}>{(batter as BatterRecord).slg.toFixed(3)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.ztotal, battersValues.map(b => b.ztotal)) || 'transparent' }}>{batter.ztotal.toFixed(2)}</td>
+                                        </tr>
+                                    );
+                                }
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -113,21 +100,27 @@ export default function TeamPage({ params }: PageProps) {
                                     <th className="border border-gray-300 px-4 py-2">BB/9</th>
                                     <th className="border border-gray-300 px-4 py-2">QS</th>
                                     <th className="border border-gray-300 px-4 py-2">SVH</th>
+                                    <th className="border border-gray-300 px-4 py-2">zTotal</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {teamPitchers.map((pitcher, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.name}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.ip.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.so.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.era.toFixed(2)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.whip.toFixed(2)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.bb9.toFixed(2)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.qs.toFixed(1)}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{pitcher.svh.toFixed(1)}</td>
-                                    </tr>
-                                ))}
+                                {teamPitchers.map((pitcher, index) => {
+                                    if (process.env.NODE_ENV)
+                                        console.log(pitcher);
+                                    return (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="border border-gray-300 px-4 py-2">{pitcher.name}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{pitcher.ip.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).so, pitchersValues.map(p => (p as PitcherRecord).so)) || 'transparent' }}>{(pitcher as PitcherRecord).so.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).era, pitchersValues.map(p => (p as PitcherRecord).era)) || 'transparent' }}>{(pitcher as PitcherRecord).era.toFixed(2)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).whip, pitchersValues.map(p => (p as PitcherRecord).whip)) || 'transparent' }}>{(pitcher as PitcherRecord).whip.toFixed(2)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).bb9, pitchersValues.map(p => (p as PitcherRecord).bb9)) || 'transparent' }}>{(pitcher as PitcherRecord).bb9.toFixed(2)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).qs, pitchersValues.map(p => (p as PitcherRecord).qs)) || 'transparent' }}>{(pitcher as PitcherRecord).qs.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).svh, pitchersValues.map(p => (p as PitcherRecord).svh)) || 'transparent' }}>{(pitcher as PitcherRecord).svh.toFixed(1)}</td>
+                                            <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.ztotal, pitchersValues.map(p => p.ztotal)) || 'transparent' }}>{pitcher.ztotal.toFixed(2)}</td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </div>
