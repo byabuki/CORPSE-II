@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { TeamsAndPlayers, PlayerRecord } from '../lib/types';
-import { getCompleteBatterValues, getCompletePitcherValues } from '../lib/helpers';
+import { getCompleteBatterValues, getCompletePitcherValues, getTeamsAndPlayers } from '../lib/api';
 
 interface FantasyDataContextType {
     teamsAndPlayers: TeamsAndPlayers;
@@ -34,7 +34,6 @@ export function FantasyDataProvider({ children }: { children: ReactNode }) {
                 try {
                     const result = (await getCompleteBatterValues()) as unknown as PlayerRecord[];
                     setBattersValues(result);
-                    console.log(result);
                 } catch (e) {
                     console.error(`Could not retrieve batters data: ${e}`);
                     setBattersValues([]);
@@ -45,7 +44,6 @@ export function FantasyDataProvider({ children }: { children: ReactNode }) {
                 try {
                     const result = (await getCompletePitcherValues()) as unknown as PlayerRecord[];
                     setPitchersValues(result);
-                    console.log(result);
                 } catch (e) {
                     console.error(`Could not retrieve pitchers data: ${e}`);
                     setPitchersValues([]);
@@ -54,10 +52,8 @@ export function FantasyDataProvider({ children }: { children: ReactNode }) {
 
             async function fetchTeams() {
                 try {
-                    console.log('call fetch-teams');
-                    const response = await fetch('/api/v1/fetch-teams');
-                    const data = await response.json();
-                    setTeamsAndPlayersState(data);
+                    const result = await getTeamsAndPlayers();
+                    setTeamsAndPlayersState(result);
                 } catch (error) {
                     console.error('Failed to fetch teams:', error);
                 }
