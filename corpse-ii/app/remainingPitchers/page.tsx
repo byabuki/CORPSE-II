@@ -4,11 +4,15 @@ import { useFantasyData } from '../context/FantasyDataContext';
 import { useEffect, useState } from 'react';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { PitcherRecord } from '../lib/types';
-import { getColor } from '../lib/helpers';
+import { getColor, statKeys, getIsRateStat, getWeightedStatValue } from '../lib/helpers';
 import { getAllPitchers } from '../lib/api';
 
 export default function RemainingPitchersPage() {
-    const { pitchersValues, teamsAndPlayers } = useFantasyData();
+    const {
+        isLoadingComplete,
+        pitchersValues,
+        pitchersConfig
+    } = useFantasyData();
     const [currentPage, setCurrentPage] = useState(1);
     const [allPitchers, setAllPitchers] = useState<PitcherRecord[]>();
 
@@ -21,7 +25,7 @@ export default function RemainingPitchersPage() {
         fetchAllPitchers();
     }, []);
 
-    if (Object.keys(teamsAndPlayers).length === 0 || !pitchersValues || !allPitchers)
+    if (!isLoadingComplete || !allPitchers)
         return <LoadingIndicator />;
 
     // Filter remaining pitchers: start with allPitchers, remove those with player_id matching pitchersValues
@@ -74,13 +78,13 @@ export default function RemainingPitchersPage() {
                                 <tr key={pitcher.nameascii || index} className="hover:bg-gray-50">
                                     <td className="border border-gray-300 px-4 py-2">{pitcher.name}</td>
                                     <td className="border border-gray-300 px-4 py-2">{pitcher.ip.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.so, pitchersValues.map(p => (p as PitcherRecord).so)) || 'transparent' }}>{pitcher.so.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.era, pitchersValues.map(p => (p as PitcherRecord).era)) || 'transparent' }}>{pitcher.era.toFixed(2)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.whip, pitchersValues.map(p => (p as PitcherRecord).whip)) || 'transparent' }}>{pitcher.whip.toFixed(2)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.bb9, pitchersValues.map(p => (p as PitcherRecord).bb9)) || 'transparent' }}>{pitcher.bb9.toFixed(2)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.qs, pitchersValues.map(p => (p as PitcherRecord).qs)) || 'transparent' }}>{pitcher.qs.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.svh, pitchersValues.map(p => (p as PitcherRecord).svh)) || 'transparent' }}>{pitcher.svh.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.ztotal, pitchersValues.map(p => p.ztotal)) || 'transparent' }}>{pitcher.ztotal.toFixed(2)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.so, pitchersValues!.map(p => (p as PitcherRecord).so)) || 'transparent' }}>{pitcher.so.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(pitcher, 'era', getIsRateStat(pitchersConfig, statKeys.pitcher.era)), pitchersValues!.map(p => getWeightedStatValue(p as PitcherRecord, 'era', getIsRateStat(pitchersConfig, statKeys.pitcher.era)))) || 'transparent' }}>{pitcher.era.toFixed(2)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(pitcher, 'whip', getIsRateStat(pitchersConfig, statKeys.pitcher.whip)), pitchersValues!.map(p => getWeightedStatValue(p as PitcherRecord, 'whip', getIsRateStat(pitchersConfig, statKeys.pitcher.whip)))) || 'transparent' }}>{pitcher.whip.toFixed(2)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(pitcher, 'bb9', getIsRateStat(pitchersConfig, statKeys.pitcher.bb9)), pitchersValues!.map(p => getWeightedStatValue(p as PitcherRecord, 'bb9', getIsRateStat(pitchersConfig, statKeys.pitcher.bb9)))) || 'transparent' }}>{pitcher.bb9.toFixed(2)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.qs, pitchersValues!.map(p => (p as PitcherRecord).qs)) || 'transparent' }}>{pitcher.qs.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.svh, pitchersValues!.map(p => (p as PitcherRecord).svh)) || 'transparent' }}>{pitcher.svh.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.ztotal, pitchersValues!.map(p => p.ztotal)) || 'transparent' }}>{pitcher.ztotal.toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>

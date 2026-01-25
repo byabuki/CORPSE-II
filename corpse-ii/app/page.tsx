@@ -10,6 +10,7 @@ import { getColor } from './lib/helpers';
 export default function Home() {
     const {
         battersValues,
+        isLoadingComplete,
         pitchersValues,
         teamsAndPlayers,
     } = useFantasyData();
@@ -17,13 +18,13 @@ export default function Home() {
     // State for chart view toggle
     const [view, setView] = useState('both');
 
-    if (!battersValues || !pitchersValues || !teamsAndPlayers)
+    if (!isLoadingComplete)
         return <LoadingIndicator />;
 
     const batterTeamSums = Object.entries(teamsAndPlayers).reduce((batterAcc, [team, players]) => {
         batterAcc[team] = 0;
         for (const playerName of players) {
-            const batter = battersValues.find(b => b.nameascii === playerName && b.team === team);
+            const batter = battersValues!.find(b => b.nameascii === playerName && b.team === team);
             if (batter) {
                 if (process.env.NODE_ENV)
                     console.log(`add batter ${batter.nameascii} to team ${team}, value ${batter.ztotal}`);
@@ -45,7 +46,7 @@ export default function Home() {
     const pitcherTeamSums = Object.entries(teamsAndPlayers).reduce((pitcherAcc, [team, players]) => {
         pitcherAcc[team] = 0;
         for (const playerName of players) {
-            const pitcher = pitchersValues.find(p => p.nameascii === playerName && p.team === team);
+            const pitcher = pitchersValues!.find(p => p.nameascii === playerName && p.team === team);
             if (pitcher) {
                 if (process.env.NODE_ENV)
                     console.log(`add pitcher ${pitcher.nameascii} to team ${team}, value ${pitcher.ztotal}`);
@@ -163,8 +164,6 @@ export default function Home() {
                     </thead>
                     <tbody>
                         {sortedTeams.map(team => {
-                            const battersValue = batterTeamSums[team] || 0;
-                            const pitchersValue = pitcherTeamSums[team] || 0;
                             const battersZScore = batterZzs[team];
                             const pitchersZScore = pitcherZzs[team];
                             const totalZScore = teamZzTotals[team];

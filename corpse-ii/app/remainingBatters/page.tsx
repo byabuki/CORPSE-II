@@ -4,11 +4,15 @@ import { useFantasyData } from '../context/FantasyDataContext';
 import { useEffect, useState } from 'react';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { BatterRecord } from '../lib/types';
-import { getColor } from '../lib/helpers';
+import { getColor, statKeys, getIsRateStat, getWeightedStatValue } from '../lib/helpers';
 import { getAllBatters } from '../lib/api';
 
 export default function RemainingBattersPage() {
-    const { battersValues, teamsAndPlayers } = useFantasyData();
+    const {
+        battersValues,
+        isLoadingComplete,
+        battersConfig
+    } = useFantasyData();
     const [currentPage, setCurrentPage] = useState(1);
     const [allBatters, setAllBatters] = useState<BatterRecord[]>();
 
@@ -21,7 +25,7 @@ export default function RemainingBattersPage() {
         fetchAllBatters();
     }, []);
 
-    if (Object.keys(teamsAndPlayers).length === 0 || !battersValues || !allBatters)
+    if (!isLoadingComplete || !allBatters)
         return <LoadingIndicator />;
 
     // Filter remaining batters: start with allBatters, remove those with player_id matching battersValues
@@ -74,13 +78,13 @@ export default function RemainingBattersPage() {
                                 <tr key={batter.nameascii || index} className="hover:bg-gray-50">
                                     <td className="border border-gray-300 px-4 py-2">{batter.name}</td>
                                     <td className="border border-gray-300 px-4 py-2">{batter.pa.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.hr, battersValues.map(b => (b as BatterRecord).hr)) || 'transparent' }}>{batter.hr.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.sb, battersValues.map(b => (b as BatterRecord).sb)) || 'transparent' }}>{batter.sb.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.bb, battersValues.map(b => (b as BatterRecord).bb)) || 'transparent' }}>{batter.bb.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.tb, battersValues.map(b => (b as BatterRecord).tb)) || 'transparent' }}>{batter.tb.toFixed(1)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.obp, battersValues.map(b => (b as BatterRecord).obp)) || 'transparent' }}>{batter.obp.toFixed(3)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.slg, battersValues.map(b => (b as BatterRecord).slg)) || 'transparent' }}>{batter.slg.toFixed(3)}</td>
-                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.ztotal, battersValues.map(b => b.ztotal)) || 'transparent' }}>{batter.ztotal.toFixed(2)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.hr, battersValues!.map(b => (b as BatterRecord).hr)) || 'transparent' }}>{batter.hr.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.sb, battersValues!.map(b => (b as BatterRecord).sb)) || 'transparent' }}>{batter.sb.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.bb, battersValues!.map(b => (b as BatterRecord).bb)) || 'transparent' }}>{batter.bb.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.tb, battersValues!.map(b => (b as BatterRecord).tb)) || 'transparent' }}>{batter.tb.toFixed(1)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(batter, 'obp', getIsRateStat(battersConfig, statKeys.batter.obp)), battersValues!.map(b => getWeightedStatValue(b as BatterRecord, 'obp', getIsRateStat(battersConfig, statKeys.batter.obp)))) || 'transparent' }}>{batter.obp.toFixed(3)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(batter, 'slg', getIsRateStat(battersConfig, statKeys.batter.slg)), battersValues!.map(b => getWeightedStatValue(b as BatterRecord, 'slg', getIsRateStat(battersConfig, statKeys.batter.slg)))) || 'transparent' }}>{batter.slg.toFixed(3)}</td>
+                                    <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.ztotal, battersValues!.map(b => b.ztotal)) || 'transparent' }}>{batter.ztotal.toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>

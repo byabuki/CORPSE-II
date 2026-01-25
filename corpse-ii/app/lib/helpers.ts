@@ -1,3 +1,5 @@
+import { CategoriesConfig, BatterRecord, PitcherRecord } from './types';
+
 /**
  * Converts a string to ASCII by removing diacritical marks (accents).
  * @param str - The input string
@@ -30,18 +32,52 @@ export function getPercentile(value: number, values: number[]) {
     return percentile;
 };
 
-export function getColor(value: number, values: number[]): string | null {
+export function getColor(value: number, values: number[], isPositiveStat: boolean = true): string | null {
     const percentile = getPercentile(value, values);
     if (percentile === 0.5) return null; // no color at 50th percentile
     let hue: number;
     let saturation: number;
     if (percentile < 0.5) {
-        hue = 0;
+        hue = isPositiveStat ? 0 : 120; // red for low values if positive stat, green if negative stat
         saturation = (0.5 - percentile) * 140;
     } else {
-        hue = 120;
+        hue = isPositiveStat ? 120 : 0; // green for high values if positive stat, red if negative stat
         saturation = (percentile - 0.5) * 140;
     }
     saturation = Math.min(saturation, 100);
     return `hsl(${hue}, ${saturation}%, 50%)`;
 };
+
+// Mapping of stat properties to config keys
+export const statKeys = {
+    batter: {
+        hr: 'HR',
+        sb: 'SB',
+        bb: 'BB',
+        tb: 'TB',
+        obp: 'OBP',
+        slg: 'SLG',
+        ztotal: 'zTotal' // not in config, default true
+    },
+    pitcher: {
+        so: 'SO',
+        era: 'ERA',
+        whip: 'WHIP',
+        bb9: 'BB/9',
+        qs: 'QS',
+        svh: 'SVH',
+        ztotal: 'zTotal' // not in config, default true
+    }
+};
+
+export function getIsPositiveStat(config: CategoriesConfig | undefined, key: string) {
+    return config?.categories?.[key]?.isPositiveStat ?? true;
+}
+
+export function getIsRateStat(config: CategoriesConfig | undefined, key: string) {
+    return config?.categories?.[key]?.isRateStat ?? false;
+}
+
+export function getWeightedStatValue(player: BatterRecord | PitcherRecord, statName: string, isRate: boolean) {
+    return (player as unknown as Record<string, number>)[isRate ? `zw${statName}` : statName];
+}
