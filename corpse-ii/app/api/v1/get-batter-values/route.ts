@@ -7,7 +7,7 @@ export async function GET() {
     try {
         const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
-        Logger.info('Get teams, batters, and values');
+        Logger.info('Get the correct batters and values for team calculations');
 
         const batterQueryData = await sql`SELECT * FROM team_batters_joined`;
 

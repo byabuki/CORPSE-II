@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { TeamsAndPlayers, PlayerValues } from './types';
+import { TeamsAndPlayers, PlayerValues, BatterRecord, PitcherRecord } from './types';
 
 const API_BASE_URL = 'https://corpse-ii.vercel.app';
 
@@ -54,6 +54,55 @@ export async function getCompleteBatterValues(): Promise<PlayerValues> {
         throw error;
     }
 }
+
+export async function getAllBatters(): Promise<BatterRecord[]> {
+    Logger.info('Retrieving all batters');
+
+    try {
+        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-all-batters`);
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch all batters');
+        }
+
+        Logger.info(`Retrieved ${result.data.length} batter records`);
+        return result.data;
+    } catch (error) {
+        Logger.error(`Failed to retrieve batter values from API: ${error}`);
+        throw error;
+    }
+}
+
+export async function getAllPitchers(): Promise<PitcherRecord[]> {
+    Logger.info('Retrieving all pitchers');
+
+    try {
+        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-all-pitchers`);
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch all pitchers');
+        }
+
+        Logger.info(`Retrieved ${result.data.length} pitchers records`);
+        return result.data;
+    } catch (error) {
+        Logger.error(`Failed to retrieve pitcher values from API: ${error}`);
+        throw error;
+    }
+}
+
 
 export async function getCompletePitcherValues(): Promise<PlayerValues> {
     Logger.info('Retrieving pitcher values from API');

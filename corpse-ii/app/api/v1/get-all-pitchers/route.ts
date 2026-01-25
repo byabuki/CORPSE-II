@@ -7,9 +7,9 @@ export async function GET() {
     try {
         const sql = postgres(process.env.DATABASE_URL || '', { ssl: 'verify-full' });
 
-        Logger.info('Get the correct pitchers and values for team calculations');
+        Logger.info('Get all pitchers');
 
-        const pitcherQueryData = await sql`SELECT * FROM team_pitchers_joined`;
+        const pitcherQueryData = await sql`SELECT * FROM pitchers_values_2026`;
 
         return NextResponse.json(
             {
@@ -19,11 +19,11 @@ export async function GET() {
             { status: 200 }
         );
     } catch (e) {
-        Logger.error(`Unable to fetch pitcher values: ${JSON.stringify(e)}`);
+        Logger.error(`Unable to fetch all pitchers: ${JSON.stringify(e)}`);
         return NextResponse.json(
             {
                 success: false,
-                error: 'Failed to fetch pitcher values',
+                error: 'Failed to fetch all pitchers',
             },
             { status: 500 }
         );
