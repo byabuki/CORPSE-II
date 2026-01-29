@@ -48,28 +48,30 @@ export default function Sidebar() {
                     </button>
                 )}
             </div>
-            <nav className={`${isCollapsed ? 'hidden' : 'p-6'}`}>
-                <ul className="space-y-4">
-                    <li>
-                        <Link
-                            href="/"
-                            className="block text-black hover:bg-amber-100 px-3 py-2 rounded transition-colors"
-                        >
-                            Home
-                        </Link>
-                    </li>
-                    {teams.map((teamName) => (
-                        <li key={teamName}>
+            <div className={`${isCollapsed ? 'hidden' : 'p-6'} flex-1 overflow-y-auto`}>
+                <nav>
+                    <ul className="space-y-4">
+                        <li>
                             <Link
-                                href={`/teams/${encodeURIComponent(teamName)}`}
+                                href="/"
                                 className="block text-black hover:bg-amber-100 px-3 py-2 rounded transition-colors"
                             >
-                                {teamName}
+                                Home
                             </Link>
                         </li>
-                    ))}
-                </ul>
-            </nav>
+                        {teams.map((teamName) => (
+                            <li key={teamName}>
+                                <Link
+                                    href={`/teams/${encodeURIComponent(teamName)}`}
+                                    className="block text-black hover:bg-amber-100 px-3 py-2 rounded transition-colors"
+                                >
+                                    {teamName}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            </div>
         </aside>
     );
 }

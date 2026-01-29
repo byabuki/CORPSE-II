@@ -2,6 +2,7 @@ import { Logger } from './logger';
 import { TeamsAndPlayers, PlayerValues, BatterRecord, PitcherRecord } from './types';
 
 const API_BASE_URL = 'https://corpse-ii.vercel.app';
+const IS_DEV_ENV = process.env.NODE_ENV !== 'production';
 
 /**
  * Retrieves teams and their players from the API.
@@ -11,7 +12,8 @@ export async function getTeamsAndPlayers(): Promise<TeamsAndPlayers> {
     Logger.info('Retrieving teams and players from API');
 
     try {
-        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/fetch-teams`);
+        console.log(process.env.NODE_ENV);
+        const response = await fetch(`${IS_DEV_ENV ? 'http://localhost:3000' : API_BASE_URL}/api/v1/fetch-teams`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -35,7 +37,7 @@ export async function getCompleteBatterValues(): Promise<PlayerValues> {
     Logger.info('Retrieving batter values from API');
 
     try {
-        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-batter-values`);
+        const response = await fetch(`${IS_DEV_ENV ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-batter-values`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -59,7 +61,7 @@ export async function getAllBatters(): Promise<BatterRecord[]> {
     Logger.info('Retrieving all batters');
 
     try {
-        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-all-batters`);
+        const response = await fetch(`${IS_DEV_ENV ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-all-batters`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -83,7 +85,7 @@ export async function getAllPitchers(): Promise<PitcherRecord[]> {
     Logger.info('Retrieving all pitchers');
 
     try {
-        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-all-pitchers`);
+        const response = await fetch(`${IS_DEV_ENV ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-all-pitchers`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -108,7 +110,7 @@ export async function getCompletePitcherValues(): Promise<PlayerValues> {
     Logger.info('Retrieving pitcher values from API');
 
     try {
-        const response = await fetch(`${process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-pitcher-values`);
+        const response = await fetch(`${IS_DEV_ENV ? 'http://localhost:3000' : API_BASE_URL}/api/v1/get-pitcher-values`);
 
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
