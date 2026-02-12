@@ -228,8 +228,12 @@ export default function Home() {
                             <th className="border border-gray-300 px-4 py-2">Win%</th>
                             <th className="border border-gray-300 px-4 py-2">Offense+</th>
                             <th className="border border-gray-300 px-4 py-2">Pitching+</th>
-                            <th className="border border-gray-300 px-4 py-2">Offense+ per Batter</th>
-                            <th className="border border-gray-300 px-4 py-2">Pitching+ per Pitcher</th>
+                            {PER_PLAYER_ENABLED ? (
+                                <>
+                                    <th className="border border-gray-300 px-4 py-2">Offense+ per Batter</th>
+                                    <th className="border border-gray-300 px-4 py-2">Pitching+ per Pitcher</th>
+                                </>
+                            ) : null}
                         </tr>
                     </thead>
                     <tbody>
@@ -291,19 +295,22 @@ export default function Home() {
                                     >
                                         {pitchPlus[team].toFixed(3)}
                                     </td>
-                                    <td
-                                        className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: getColor(battersZScore, Object.values(batterZzs)) || 'transparent' }}
-                                    >
-                                        {offPlusPerBatter[team].toFixed(3)}
-                                    </td>
-                                    <td
-                                        className="border border-gray-300 px-4 py-2"
-                                        style={{ backgroundColor: getColor(pitchersZScore, Object.values(pitcherZzs)) || 'transparent' }}
-                                    >
-                                        {pitchPlusPerPitcher[team].toFixed(3)}
-                                    </td>
-
+                                    {PER_PLAYER_ENABLED ? (
+                                        <>
+                                            <td
+                                                className="border border-gray-300 px-4 py-2"
+                                                style={{ backgroundColor: getColor(battersZScore, Object.values(batterZzs)) || 'transparent' }}
+                                            >
+                                                {offPlusPerBatter[team].toFixed(3)}
+                                            </td>
+                                            <td
+                                                className="border border-gray-300 px-4 py-2"
+                                                style={{ backgroundColor: getColor(pitchersZScore, Object.values(pitcherZzs)) || 'transparent' }}
+                                            >
+                                                {pitchPlusPerPitcher[team].toFixed(3)}
+                                            </td>
+                                        </>
+                                    ) : null}
                                 </tr>
                             );
                         })}
