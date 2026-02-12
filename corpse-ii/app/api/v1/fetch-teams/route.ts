@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import postgres from 'postgres';
 
 import { Logger } from '@/app/lib/logger';
-import { parseKeeperData } from '@/app/lib/keepers';
+import { parseKeeperDataWithIsNa } from '@/app/lib/keepers';
 import { TeamsAndPlayers } from '@/app/lib/types';
 
 export async function GET() {
@@ -75,23 +75,21 @@ export async function POST(request: Request) {
 
         Logger.info('Got sheet data, parsing data into teams and players');
 
-        const teamsAndPlayers = parseKeeperData(values);
+        const teamsAndPlayers = parseKeeperDataWithIsNa(values);
 
         Logger.info('Delete previous results');
 
         await sql`TRUNCATE TABLE team_composition_2026;`;
 
         // Prepare data for insertion
-        const valuesArrays: string[][] = [];
-        for (const [team, players] of Object.entries(teamsAndPlayers)) {
-            for (const player of players) {
-                valuesArrays.push([team, player]);
-            }
+        const valuesArrays: Array<[string, string, string]> = [];
+        for (const playerData of teamsAndPlayers) {
+            valuesArrays.push([playerData.team, playerData.player, playerData.isNa ? 'TRUE' : 'FALSE']);
         }
 
         Logger.info('Insert latest teams and players');
 
-        const columns = ['team', 'player'];
+        const columns = ['team', 'player', 'is_na'];
         const insertedRows = valuesArrays.length;
         await sql`
             INSERT INTO team_composition_2026 (${sql(columns)})
