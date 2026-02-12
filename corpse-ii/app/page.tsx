@@ -7,6 +7,8 @@ import LoadingIndicator from './components/LoadingIndicator';
 import { calculateMean, calculateStdDev } from './lib/stats';
 import { getColor } from './lib/helpers';
 
+const PER_PLAYER_ENABLED = false;
+
 export default function Home() {
     const {
         battersValues,
@@ -73,6 +75,40 @@ export default function Home() {
         Object.entries(pitcherZzs).map(([team, z]) => [team, ((z - 0) / 3 + 1) * 100])
     );
 
+    // Calculate player counts per team
+    const batterCounts = Object.entries(teamsAndPlayers).reduce((acc, [team, players]) => {
+        let count = 0;
+        for (const playerName of players) {
+            const batter = battersValues!.find(b => b.nameascii === playerName && b.team === team);
+            if (batter) {
+                count++;
+            }
+        }
+        acc[team] = count;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const pitcherCounts = Object.entries(teamsAndPlayers).reduce((acc, [team, players]) => {
+        let count = 0;
+        for (const playerName of players) {
+            const pitcher = pitchersValues!.find(p => p.nameascii === playerName && p.team === team);
+            if (pitcher) {
+                count++;
+            }
+        }
+        acc[team] = count;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // Calculate per-player values
+    const offPlusPerBatter = Object.fromEntries(
+        Object.entries(offPlus).map(([team, value]) => [team, value / (batterCounts[team] || 1)])
+    );
+
+    const pitchPlusPerPitcher = Object.fromEntries(
+        Object.entries(pitchPlus).map(([team, value]) => [team, value / (pitcherCounts[team] || 1)])
+    );
+
     const teamZzTotals = Object.entries(teamsAndPlayers).reduce((teamZzTotalsAcc, [team, ]) => {
         teamZzTotalsAcc[team] = batterZzs[team] + pitcherZzs[team];
 
@@ -85,7 +121,9 @@ export default function Home() {
     const chartData = Array.from(new Set([...Object.keys(batterTeamSums), ...Object.keys(pitcherTeamSums)])).sort().map(team => ({
         name: team,
         battersValue: offPlus[team] || 0,
-        pitchersValue: pitchPlus[team] || 0
+        pitchersValue: pitchPlus[team] || 0,
+        battersPerPlayerValue: offPlusPerBatter[team] || 0,
+        pitchersPerPlayerValue: pitchPlusPerPitcher[team] || 0
     }));
 
     return (
@@ -127,6 +165,30 @@ export default function Home() {
                         >
                             Pitching+ Only
                         </button>
+                        {PER_PLAYER_ENABLED ? (
+                            <>
+                                <button
+                                    onClick={() => setView('battersPerPlayer')}
+                                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                        view === 'battersPerPlayer'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    Offense+ per Batter
+                                </button>
+                                <button
+                                    onClick={() => setView('pitchersPerPlayer')}
+                                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                        view === 'pitchersPerPlayer'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    Pitching+ per Pitcher
+                                </button>
+                            </>
+                        ) : null}
                     </div>
 
                     <div className="h-[500px]">
@@ -142,6 +204,12 @@ export default function Home() {
                                 )}
                                 {(view === 'both' || view === 'pitchers') && (
                                     <Bar dataKey="pitchersValue" fill="#bd2929" name="Pitching+" stackId={view === 'both' ? 'stack' : undefined} />
+                                )}
+                                {view === 'battersPerPlayer' && (
+                                    <Bar dataKey="battersPerPlayerValue" fill="#3b82f6" name="Offense+ per Batter" />
+                                )}
+                                {view === 'pitchersPerPlayer' && (
+                                    <Bar dataKey="pitchersPerPlayerValue" fill="#bd2929" name="Pitching+ per Pitcher" />
                                 )}
                             </BarChart>
                         </ResponsiveContainer>
@@ -160,6 +228,8 @@ export default function Home() {
                             <th className="border border-gray-300 px-4 py-2">Win%</th>
                             <th className="border border-gray-300 px-4 py-2">Offense+</th>
                             <th className="border border-gray-300 px-4 py-2">Pitching+</th>
+                            <th className="border border-gray-300 px-4 py-2">Offense+ per Batter</th>
+                            <th className="border border-gray-300 px-4 py-2">Pitching+ per Pitcher</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -220,6 +290,18 @@ export default function Home() {
                                         style={{ backgroundColor: getColor(pitchersZScore, Object.values(pitcherZzs)) || 'transparent' }}
                                     >
                                         {pitchPlus[team].toFixed(3)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: getColor(battersZScore, Object.values(batterZzs)) || 'transparent' }}
+                                    >
+                                        {offPlusPerBatter[team].toFixed(3)}
+                                    </td>
+                                    <td
+                                        className="border border-gray-300 px-4 py-2"
+                                        style={{ backgroundColor: getColor(pitchersZScore, Object.values(pitcherZzs)) || 'transparent' }}
+                                    >
+                                        {pitchPlusPerPitcher[team].toFixed(3)}
                                     </td>
 
                                 </tr>
