@@ -75,7 +75,11 @@ export default function TeamPage({ params }: PageProps) {
                                         console.log(batter);
                                     return (
                                         <tr key={index} className="hover:bg-gray-50">
-                                            <td className="border border-gray-300 px-4 py-2">{batter.name}</td>
+                                            <td className="border border-gray-300 px-4 py-2">
+                                                <a href={`https://www.fangraphs.com/players/-/${batter.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                                    {batter.name}
+                                                </a>
+                                            </td>
                                             <td className="border border-gray-300 px-4 py-2">{batter.pa.toFixed(1)}</td>
                                             <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).hr, battersValues!.map(b => (b as BatterRecord).hr), getIsPositiveStat(battersConfig, statKeys.batter.hr)) || 'transparent' }}>{(batter as BatterRecord).hr.toFixed(1)}</td>
                                             <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((batter as BatterRecord).sb, battersValues!.map(b => (b as BatterRecord).sb), getIsPositiveStat(battersConfig, statKeys.batter.sb)) || 'transparent' }}>{(batter as BatterRecord).sb.toFixed(1)}</td>
@@ -116,7 +120,11 @@ export default function TeamPage({ params }: PageProps) {
                                         console.log(pitcher);
                                     return (
                                         <tr key={index} className="hover:bg-gray-50">
-                                            <td className="border border-gray-300 px-4 py-2">{pitcher.name}</td>
+                                            <td className="border border-gray-300 px-4 py-2">
+                                                <a href={`https://www.fangraphs.com/players/-/${pitcher.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                                    {pitcher.name}
+                                                </a>
+                                            </td>
                                             <td className="border border-gray-300 px-4 py-2">{pitcher.ip.toFixed(1)}</td>
                                             <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor((pitcher as PitcherRecord).so, pitchersValues!.map(p => (p as PitcherRecord).so), getIsPositiveStat(pitchersConfig, statKeys.pitcher.so)) || 'transparent' }}>{(pitcher as PitcherRecord).so.toFixed(1)}</td>
                                             <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(pitcher, 'era', getIsRateStat(pitchersConfig, statKeys.pitcher.era)), pitchersValues!.map(p => getWeightedStatValue(p as PitcherRecord, 'era', getIsRateStat(pitchersConfig, statKeys.pitcher.era))), true) || 'transparent' }}>{(pitcher as PitcherRecord).era.toFixed(2)}</td>
