@@ -4,7 +4,7 @@ import { useFantasyData } from '../context/FantasyDataContext';
 import { useEffect, useState } from 'react';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { PitcherRecord } from '../lib/types';
-import { getColor, statKeys, getIsRateStat, getWeightedStatValue } from '../lib/helpers';
+import { getColor, statKeys, getIsRateStat, getWeightedStatValue, getFangraphsPlayerStatsUrl } from '../lib/helpers';
 import { getAllPitchers } from '../lib/api';
 
 export default function RemainingPitchersPage() {
@@ -77,7 +77,7 @@ export default function RemainingPitchersPage() {
                             {currentPitchers.map((pitcher, index) => (
                                 <tr key={pitcher.nameascii || index} className="hover:bg-gray-50">
                                     <td className="border border-gray-300 px-4 py-2">
-                                        <a href={`https://www.fangraphs.com/players/-/${pitcher.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                        <a href={getFangraphsPlayerStatsUrl(pitcher.player_id)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
                                             {pitcher.name}
                                         </a>
                                     </td>

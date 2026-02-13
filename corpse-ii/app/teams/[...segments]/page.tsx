@@ -4,7 +4,7 @@ import { useFantasyData } from '../../context/FantasyDataContext';
 import { useEffect, useState } from 'react';
 import LoadingIndicator from '../../components/LoadingIndicator';
 import { BatterRecord, PitcherRecord } from '../../lib/types';
-import { getColor, statKeys, getIsPositiveStat, getIsRateStat, getWeightedStatValue } from '../../lib/helpers';
+import { getColor, statKeys, getIsPositiveStat, getIsRateStat, getWeightedStatValue, getFangraphsPlayerStatsUrl } from '../../lib/helpers';
 
 interface PageProps {
     params: {
@@ -76,7 +76,7 @@ export default function TeamPage({ params }: PageProps) {
                                     return (
                                         <tr key={index} className="hover:bg-gray-50">
                                             <td className="border border-gray-300 px-4 py-2">
-                                                <a href={`https://www.fangraphs.com/players/-/${batter.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                                <a href={getFangraphsPlayerStatsUrl(batter.player_id)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
                                                     {batter.name}
                                                 </a>
                                             </td>
@@ -121,7 +121,7 @@ export default function TeamPage({ params }: PageProps) {
                                     return (
                                         <tr key={index} className="hover:bg-gray-50">
                                             <td className="border border-gray-300 px-4 py-2">
-                                                <a href={`https://www.fangraphs.com/players/-/${pitcher.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                                <a href={getFangraphsPlayerStatsUrl(pitcher.player_id)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
                                                     {pitcher.name}
                                                 </a>
                                             </td>

@@ -81,3 +81,12 @@ export function getIsRateStat(config: CategoriesConfig | undefined, key: string)
 export function getWeightedStatValue(player: BatterRecord | PitcherRecord, statName: string, isRate: boolean) {
     return (player as unknown as Record<string, number>)[isRate ? `zw${statName}` : statName];
 }
+
+/**
+ * Constructs a Fangraphs player stats URL for a given player ID
+ * @param playerId The ID of the player
+ * @returns The formatted Fangraphs URL
+ */
+export function getFangraphsPlayerStatsUrl(playerId: string | number): string {
+    return `https://www.fangraphs.com/players/-/${playerId}/stats`;
+}
