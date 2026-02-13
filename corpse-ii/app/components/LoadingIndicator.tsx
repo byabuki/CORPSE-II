@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 const LOADING_MESSAGES = [
     '⏳',
-    '⚾️',
+    '⚾️ ⚾️ ⚾️',
     '📉',
     '📈',
     '📊',
