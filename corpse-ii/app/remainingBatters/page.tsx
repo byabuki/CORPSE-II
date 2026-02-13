@@ -76,7 +76,11 @@ export default function RemainingBattersPage() {
                         <tbody>
                             {currentBatters.map((batter, index) => (
                                 <tr key={batter.nameascii || index} className="hover:bg-gray-50">
-                                    <td className="border border-gray-300 px-4 py-2">{batter.name}</td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        <a href={`https://www.fangraphs.com/players/-/${batter.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                            {batter.name}
+                                        </a>
+                                    </td>
                                     <td className="border border-gray-300 px-4 py-2">{batter.pa.toFixed(1)}</td>
                                     <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.hr, battersValues!.map(b => (b as BatterRecord).hr)) || 'transparent' }}>{batter.hr.toFixed(1)}</td>
                                     <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(batter.sb, battersValues!.map(b => (b as BatterRecord).sb)) || 'transparent' }}>{batter.sb.toFixed(1)}</td>

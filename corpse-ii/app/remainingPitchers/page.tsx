@@ -76,7 +76,11 @@ export default function RemainingPitchersPage() {
                         <tbody>
                             {currentPitchers.map((pitcher, index) => (
                                 <tr key={pitcher.nameascii || index} className="hover:bg-gray-50">
-                                    <td className="border border-gray-300 px-4 py-2">{pitcher.name}</td>
+                                    <td className="border border-gray-300 px-4 py-2">
+                                        <a href={`https://www.fangraphs.com/players/-/${pitcher.player_id}/stats`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                            {pitcher.name}
+                                        </a>
+                                    </td>
                                     <td className="border border-gray-300 px-4 py-2">{pitcher.ip.toFixed(1)}</td>
                                     <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(pitcher.so, pitchersValues!.map(p => (p as PitcherRecord).so)) || 'transparent' }}>{pitcher.so.toFixed(1)}</td>
                                     <td className="border border-gray-300 px-4 py-2" style={{ backgroundColor: getColor(getWeightedStatValue(pitcher, 'era', getIsRateStat(pitchersConfig, statKeys.pitcher.era)), pitchersValues!.map(p => getWeightedStatValue(p as PitcherRecord, 'era', getIsRateStat(pitchersConfig, statKeys.pitcher.era)))) || 'transparent' }}>{pitcher.era.toFixed(2)}</td>
